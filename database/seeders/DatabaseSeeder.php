@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Actions\Slots\GenerateSlots;
 use App\Enums\BookingMode;
+use App\Enums\BookingStatus;
 use App\Models\Booking;
 use App\Models\Property;
 use App\Models\User;
@@ -39,6 +40,19 @@ class DatabaseSeeder extends Seeder
         Booking::factory()->count(2)->sequence(
             fn ($sequence) => ['property_slot_id' => $properties[0]->slots()->skip($sequence->index * 2)->first()->id],
         )->create(['property_id' => $properties[0]->id]);
+
+        // A confirmed visit on the agent-approval property, waiting for extra information.
+        $slot = $properties[1]->slots()->first();
+        $slot->update(['is_booked' => true]);
+        Booking::factory()->create([
+            'property_id' => $properties[1]->id,
+            'property_slot_id' => $slot->id,
+            'prospect_name' => 'Camille Martin',
+            'prospect_email' => 'camille@example.com',
+            'status' => BookingStatus::Confirmed,
+            'decided_at' => now(),
+            'information_requested_at' => now(),
+        ]);
 
         // A second agent, to check that tenants are isolated.
         Property::factory()->for(User::factory()->create(['email' => 'other@example.com']), 'agent')->create();

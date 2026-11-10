@@ -112,7 +112,12 @@ class BookingResource extends Resource
             ->actions([
                 BookingActions::approve()->iconButton()->tooltip('Approuver'),
                 BookingActions::reject()->iconButton()->tooltip('Refuser'),
-                Tables\Actions\ViewAction::make()->iconButton(),
+                Tables\Actions\ActionGroup::make([
+                    Tables\Actions\ViewAction::make(),
+                    BookingActions::reschedule(),
+                    BookingActions::requestInformation(),
+                    BookingActions::cancel(),
+                ]),
             ]);
     }
 
@@ -128,6 +133,8 @@ class BookingResource extends Resource
                     Infolists\Components\TextEntry::make('slot.start_time')->label('Début')->dateTime('d/m/Y H:i'),
                     Infolists\Components\TextEntry::make('slot.end_time')->label('Fin')->dateTime('d/m/Y H:i'),
                     Infolists\Components\TextEntry::make('decided_at')->label('Traitée le')->dateTime('d/m/Y H:i')->placeholder('—'),
+                    Infolists\Components\TextEntry::make('cancellation_reason')->label('Motif d\'annulation')->visible(fn (Booking $record) => filled($record->cancellation_reason))->columnSpanFull(),
+                    Infolists\Components\TextEntry::make('information_requested_at')->label('Informations demandées le')->dateTime('d/m/Y H:i')->visible(fn (Booking $record) => filled($record->information_requested_at))->color('warning'),
                 ]),
             Infolists\Components\Section::make('Visiteur')
                 ->columns(2)

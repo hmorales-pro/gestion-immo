@@ -8,6 +8,7 @@ use App\Exceptions\BookingException;
 use App\Models\Booking;
 use App\Models\Property;
 use App\Models\PropertySlot;
+use App\Notifications\BookingReceived;
 use App\Notifications\OwnerApprovalRequested;
 use App\Notifications\VisitRequested;
 use Illuminate\Support\Facades\DB;
@@ -16,7 +17,10 @@ use Propaganistas\LaravelPhone\PhoneNumber;
 
 class CreateBooking
 {
-    public function __construct(private readonly ApproveBooking $approve) {}
+    public function __construct(
+        private readonly ApproveBooking $approve,
+        private readonly EnsureProspectIsFree $ensureProspectIsFree,
+    ) {}
 
     /**
      * @param  array{prospect_name: string, prospect_email: string, prospect_phone: string, employment_status: string, message?: string|null}  $prospect
@@ -36,7 +40,7 @@ class CreateBooking
                 throw BookingException::slotUnavailable();
             }
 
-            $this->ensureNoOverlap($slot, $prospect['prospect_email']);
+            $this->ensureProspectIsFree->execute($slot, $prospect['prospect_email']);
 
             return $property->bookings()->create([
                 ...$prospect,
@@ -57,22 +61,10 @@ class CreateBooking
             BookingMode::AgentApproval => null,
         };
 
-        return $booking->refresh();
-    }
-
-    /**
-     * A prospect cannot hold two active visits at overlapping times, whatever the property.
-     */
-    private function ensureNoOverlap(PropertySlot $slot, string $email): void
-    {
-        $overlaps = Booking::query()
-            ->whereIn('status', [BookingStatus::Pending, BookingStatus::Confirmed])
-            ->where('prospect_email', $email)
-            ->whereHas('slot', fn ($q) => $q->overlapping($slot->start_time, $slot->end_time))
-            ->exists();
-
-        if ($overlaps) {
-            throw BookingException::overlapping();
+        if ($property->booking_mode !== BookingMode::Instant) {
+            $booking->notify(new BookingReceived($booking));
         }
+
+        return $booking->refresh();
     }
 }

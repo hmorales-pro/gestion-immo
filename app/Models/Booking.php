@@ -42,10 +42,14 @@ class Booking extends Model
         'message',
         'status',
         'token',
+        'manage_token',
+        'sequence',
         'decided_at',
+        'cancellation_reason',
+        'information_requested_at',
     ];
 
-    protected $hidden = ['token'];
+    protected $hidden = ['token', 'manage_token'];
 
     protected $attributes = [
         'status' => 'PENDING',
@@ -57,6 +61,8 @@ class Booking extends Model
             'status' => BookingStatus::class,
             'employment_status' => EmploymentStatus::class,
             'decided_at' => 'datetime',
+            'information_requested_at' => 'datetime',
+            'sequence' => 'integer',
         ];
     }
 
@@ -64,6 +70,7 @@ class Booking extends Model
     {
         static::creating(function (Booking $booking): void {
             $booking->token ??= static::generateToken();
+            $booking->manage_token ??= static::generateToken();
         });
     }
 
@@ -93,9 +100,37 @@ class Booking extends Model
         return $this->status === BookingStatus::Pending;
     }
 
+    public function isConfirmed(): bool
+    {
+        return $this->status === BookingStatus::Confirmed;
+    }
+
+    public function isActive(): bool
+    {
+        return $this->status->isActive();
+    }
+
+    /** Owner's private link (approve / reject). */
     public function approvalUrl(): string
     {
         return route('owner.approve', $this->token);
+    }
+
+    /** Prospect's private link (see, reschedule, cancel, complete info). */
+    public function manageUrl(): string
+    {
+        return route('booking.manage', $this->manage_token);
+    }
+
+    public function icsUrl(): string
+    {
+        return route('booking.ics', $this->manage_token);
+    }
+
+    /** Stable iCalendar UID so every update / cancellation targets the same event. */
+    public function calendarUid(): string
+    {
+        return 'booking-'.$this->id.'@'.parse_url((string) config('app.url'), PHP_URL_HOST);
     }
 
     /** Routes the prospect's notifications. */

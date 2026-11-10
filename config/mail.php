@@ -37,6 +37,12 @@ return [
 
     'mailers' => [
 
+        // Brevo (ex-Sendinblue) transactional API. Set MAIL_MAILER=brevo and BREVO_API_KEY.
+        'brevo' => [
+            'transport' => 'brevo',
+            'key' => env('BREVO_API_KEY'),
+        ],
+
         'smtp' => [
             'transport' => 'smtp',
             'scheme' => env('MAIL_SCHEME'),

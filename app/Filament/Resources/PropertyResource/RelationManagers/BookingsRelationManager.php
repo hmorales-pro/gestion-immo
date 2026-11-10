@@ -27,8 +27,13 @@ class BookingsRelationManager extends RelationManager
                     ->options(BookingStatus::class),
             ])
             ->actions([
-                BookingActions::approve(),
-                BookingActions::reject(),
+                BookingActions::approve()->iconButton()->tooltip('Approuver'),
+                BookingActions::reject()->iconButton()->tooltip('Refuser'),
+                Tables\Actions\ActionGroup::make([
+                    BookingActions::reschedule(),
+                    BookingActions::requestInformation(),
+                    BookingActions::cancel(),
+                ]),
             ]);
     }
 }

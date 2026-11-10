@@ -18,6 +18,7 @@ class EditProperty extends EditRecord
                 ->icon('heroicon-o-link')
                 ->color('gray')
                 ->alpineClickHandler(fn (): string => PropertyResource::copyToClipboardJs($this->getRecord()->publicUrl())),
+            PropertyResource::inviteAction(Actions\Action::class)->label('Inviter des visiteurs'),
             Actions\DeleteAction::make(),
         ];
     }

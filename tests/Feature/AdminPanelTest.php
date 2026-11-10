@@ -4,8 +4,10 @@ namespace Tests\Feature;
 
 use App\Enums\BookingMode;
 use App\Enums\BookingStatus;
+use App\Filament\Pages\CalendarSync;
 use App\Filament\Resources\BookingResource;
 use App\Filament\Resources\BookingResource\Pages\ListBookings;
+use App\Filament\Resources\BookingResource\Pages\ViewBooking;
 use App\Filament\Resources\PropertyResource;
 use App\Filament\Resources\PropertyResource\Pages\CreateProperty;
 use App\Filament\Resources\PropertyResource\Pages\EditProperty;
@@ -15,7 +17,11 @@ use App\Models\Booking;
 use App\Models\Property;
 use App\Models\PropertySlot;
 use App\Models\User;
+use App\Notifications\BookingCancelled;
 use App\Notifications\BookingConfirmed;
+use App\Notifications\BookingRescheduled;
+use App\Notifications\InformationRequested;
+use App\Notifications\VisitInvitation;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
 use Livewire\Livewire;
@@ -174,5 +180,99 @@ class AdminPanelTest extends TestCase
             ->filterTable('status', BookingStatus::Pending->value)
             ->assertCanSeeTableRecords([$pending])
             ->assertCanNotSeeTableRecords([$rejected]);
+    }
+
+    private function confirmedBookingForAgent(): Booking
+    {
+        $slot = PropertySlot::factory()->for(Property::factory()->for($this->agent, 'agent'))
+            ->at(now()->addDays(2)->setTime(10, 0))->create(['is_booked' => true]);
+
+        return Booking::factory()->create([
+            'property_slot_id' => $slot->id,
+            'property_id' => $slot->property_id,
+            'status' => BookingStatus::Confirmed,
+        ]);
+    }
+
+    public function test_agent_can_reschedule_a_confirmed_visit(): void
+    {
+        $booking = $this->confirmedBookingForAgent();
+        $oldSlot = $booking->slot;
+        $newSlot = PropertySlot::factory()->for($booking->property)->at(now()->addDays(5)->setTime(14, 0))->create();
+
+        Livewire::test(ListBookings::class)
+            ->callTableAction('reschedule', $booking, data: ['slot_id' => $newSlot->id])
+            ->assertHasNoTableActionErrors();
+
+        $booking->refresh();
+        $this->assertSame($newSlot->id, $booking->property_slot_id);
+        $this->assertSame(BookingStatus::Confirmed, $booking->status, 'An agent move keeps the visit confirmed.');
+        $this->assertTrue($newSlot->fresh()->is_booked);
+        $this->assertFalse($oldSlot->fresh()->is_booked);
+        Notification::assertSentTo($booking, BookingRescheduled::class);
+        Notification::assertSentOnDemand(BookingRescheduled::class);
+    }
+
+    public function test_agent_can_cancel_a_visit(): void
+    {
+        $booking = $this->confirmedBookingForAgent();
+
+        Livewire::test(ViewBooking::class, ['record' => $booking->getKey()])
+            ->callAction('cancel', data: ['reason' => 'Bien loué'])
+            ->assertHasNoActionErrors();
+
+        $booking->refresh();
+        $this->assertSame(BookingStatus::Cancelled, $booking->status);
+        $this->assertSame('Bien loué', $booking->cancellation_reason);
+        $this->assertFalse($booking->slot->is_booked);
+        Notification::assertSentTo($booking, BookingCancelled::class);
+    }
+
+    public function test_agent_can_request_information(): void
+    {
+        $booking = $this->confirmedBookingForAgent();
+
+        Livewire::test(ListBookings::class)
+            ->callTableAction('requestInformation', $booking, data: ['question' => 'Date d\'emménagement ?'])
+            ->assertHasNoTableActionErrors();
+
+        $this->assertNotNull($booking->fresh()->information_requested_at);
+        Notification::assertSentTo($booking, InformationRequested::class,
+            fn ($n) => $n->question === 'Date d\'emménagement ?');
+    }
+
+    public function test_agent_can_invite_prospects_to_pick_a_slot(): void
+    {
+        $property = Property::factory()->for($this->agent, 'agent')->create();
+
+        Livewire::test(ListProperties::class)
+            ->callTableAction('invite', $property, data: [
+                'emails' => ['a@example.com', 'B@example.com', 'a@example.com'],
+                'message' => 'Le bien part vite !',
+            ])
+            ->assertHasNoTableActionErrors();
+
+        Notification::assertSentOnDemandTimes(VisitInvitation::class, 2);
+        Notification::assertSentOnDemand(VisitInvitation::class,
+            fn ($n, $channels, $notifiable) => $notifiable->routes['mail'] === 'b@example.com' && $n->personalMessage === 'Le bien part vite !');
+    }
+
+    public function test_invite_rejects_invalid_emails(): void
+    {
+        $property = Property::factory()->for($this->agent, 'agent')->create();
+
+        Livewire::test(ListProperties::class)
+            ->callTableAction('invite', $property, data: ['emails' => ['pas-un-email']])
+            ->assertHasTableActionErrors();
+
+        Notification::assertNothingSent();
+    }
+
+    public function test_calendar_sync_page_shows_feed_link(): void
+    {
+        $this->get(CalendarSync::getUrl())
+            ->assertOk()
+            ->assertSee($this->agent->fresh()->calendarFeedUrl(), escape: false)
+            ->assertSee('calendar.google.com', escape: false);
     }
 }

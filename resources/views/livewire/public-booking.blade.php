@@ -28,6 +28,9 @@
                     Votre demande doit être validée. Vous recevrez un e-mail dès qu'elle sera acceptée.
                 @endif
             </p>
+            <a href="{{ $this->booking->manageUrl() }}" class="mt-5 inline-flex rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white hover:bg-slate-800">
+                {{ $confirmed ? 'Ajouter à mon agenda / gérer' : 'Gérer mon rendez-vous' }}
+            </a>
         </section>
     @else
         <form wire:submit="submit" class="space-y-6" novalidate>
@@ -89,15 +92,25 @@
                                 <label for="{{ $field }}" class="block text-sm font-medium text-slate-700">{{ $label }}</label>
                                 <input id="{{ $field }}" type="{{ $type }}" wire:model.blur="form.{{ $field }}" autocomplete="{{ $autocomplete }}" required
                                     @if ($type === 'tel') inputmode="tel" placeholder="06 12 34 56 78" @endif
-                                    @class(['mt-1 block w-full rounded-lg border-slate-300 text-base shadow-sm focus:border-amber-500 focus:ring-amber-500', 'border-red-400' => $errors->has('form.'.$field)])>
-                                @error('form.'.$field) <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+                                    @class([
+                                        'mt-1 block w-full rounded-lg text-base shadow-sm',
+                                        'border-slate-300 focus:border-amber-500 focus:ring-amber-500' => ! $errors->has('form.'.$field),
+                                        'border-red-500 bg-red-50/40 focus:border-red-500 focus:ring-red-500' => $errors->has('form.'.$field),
+                                    ])
+                                    @error('form.'.$field) aria-invalid="true" aria-describedby="{{ $field }}-error" @enderror>
+                                @error('form.'.$field) <p id="{{ $field }}-error" class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                             </div>
                         @endforeach
 
                         <div>
                             <label for="employmentStatus" class="block text-sm font-medium text-slate-700">Situation professionnelle</label>
                             <select id="employmentStatus" wire:model="form.employmentStatus" required
-                                @class(['mt-1 block w-full rounded-lg border-slate-300 text-base shadow-sm focus:border-amber-500 focus:ring-amber-500', 'border-red-400' => $errors->has('form.employmentStatus')])>
+                                @class([
+                                    'mt-1 block w-full rounded-lg text-base shadow-sm',
+                                    'border-slate-300 focus:border-amber-500 focus:ring-amber-500' => ! $errors->has('form.employmentStatus'),
+                                    'border-red-500 bg-red-50/40 focus:border-red-500 focus:ring-red-500' => $errors->has('form.employmentStatus'),
+                                ])
+                                @error('form.employmentStatus') aria-invalid="true" @enderror>
                                 <option value="">Sélectionnez…</option>
                                 @foreach ($employmentStatuses as $status)
                                     <option value="{{ $status->value }}">{{ $status->getLabel() }}</option>

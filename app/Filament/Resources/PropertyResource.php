@@ -2,12 +2,15 @@
 
 namespace App\Filament\Resources;
 
+use App\Actions\Properties\InviteProspects;
 use App\Enums\BookingMode;
 use App\Filament\Resources\PropertyResource\Pages;
 use App\Filament\Resources\PropertyResource\RelationManagers;
 use App\Models\Property;
+use Filament\Actions\Action;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -142,6 +145,7 @@ class PropertyResource extends Resource
                     ->icon('heroicon-o-link')
                     ->color('gray')
                     ->alpineClickHandler(fn (Property $record): string => static::copyToClipboardJs($record->publicUrl())),
+                static::inviteAction(Tables\Actions\Action::class),
                 Tables\Actions\Action::make('openPublicLink')
                     ->label('Voir')
                     ->icon('heroicon-o-arrow-top-right-on-square')
@@ -156,6 +160,46 @@ class PropertyResource extends Resource
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ]);
+    }
+
+    /**
+     * "Invite to pick a slot": emails the public booking link to one or more prospects.
+     *
+     * @param  class-string<Tables\Actions\Action|Action>  $class
+     */
+    public static function inviteAction(string $class): Tables\Actions\Action|Action
+    {
+        return $class::make('invite')
+            ->label('Inviter')
+            ->icon('heroicon-o-envelope')
+            ->color('gray')
+            ->modalHeading('Inviter à choisir un créneau')
+            ->modalDescription('Chaque destinataire reçoit un e-mail avec le lien de réservation de ce bien.')
+            ->modalSubmitActionLabel('Envoyer les invitations')
+            ->form([
+                Forms\Components\TagsInput::make('emails')
+                    ->label('E-mails des visiteurs')
+                    ->placeholder('Saisissez un e-mail puis Entrée')
+                    ->splitKeys([',', ' ', ';'])
+                    ->nestedRecursiveRules(['email:rfc,strict,filter', 'max:190'])
+                    ->required(),
+                Forms\Components\TextInput::make('name')
+                    ->label('Nom du visiteur')
+                    ->helperText('Utilisé dans la formule de politesse quand il n\'y a qu\'un destinataire.')
+                    ->maxLength(120),
+                Forms\Components\Textarea::make('message')
+                    ->label('Message personnel')
+                    ->rows(3)
+                    ->maxLength(1000),
+            ])
+            ->action(function (Property $record, array $data, InviteProspects $invite): void {
+                $count = $invite->execute($record, $data['emails'], $data['name'] ?? null, $data['message'] ?? null);
+
+                Notification::make()
+                    ->title($count.' invitation(s) envoyée(s)')
+                    ->success()
+                    ->send();
+            });
     }
 
     /** Runs inside the click gesture so the Clipboard API is allowed by every browser. */

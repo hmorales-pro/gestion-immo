@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Str;
 
 class User extends Authenticatable implements FilamentUser
 {
@@ -34,6 +35,7 @@ class User extends Authenticatable implements FilamentUser
     protected $hidden = [
         'password',
         'remember_token',
+        'calendar_token',
     ];
 
     /**
@@ -63,5 +65,26 @@ class User extends Authenticatable implements FilamentUser
     public function properties(): HasMany
     {
         return $this->hasMany(Property::class);
+    }
+
+    /** Lazily creates the secret used by the agent's calendar feed. */
+    public function calendarToken(): string
+    {
+        // Read the raw attribute: a freshly created model has no calendar_token key yet.
+        if (blank($this->attributes['calendar_token'] ?? null)) {
+            $this->regenerateCalendarToken();
+        }
+
+        return $this->attributes['calendar_token'];
+    }
+
+    public function regenerateCalendarToken(): void
+    {
+        $this->forceFill(['calendar_token' => Str::random(48)])->save();
+    }
+
+    public function calendarFeedUrl(): string
+    {
+        return route('calendar.feed', $this->calendarToken());
     }
 }

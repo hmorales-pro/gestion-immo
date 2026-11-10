@@ -10,6 +10,7 @@ enum BookingStatus: string implements HasColor, HasLabel
     case Pending = 'PENDING';
     case Confirmed = 'CONFIRMED';
     case Rejected = 'REJECTED';
+    case Cancelled = 'CANCELLED';
 
     public function getLabel(): string
     {
@@ -17,6 +18,7 @@ enum BookingStatus: string implements HasColor, HasLabel
             self::Pending => 'En attente',
             self::Confirmed => 'Confirmée',
             self::Rejected => 'Refusée',
+            self::Cancelled => 'Annulée',
         };
     }
 
@@ -26,6 +28,21 @@ enum BookingStatus: string implements HasColor, HasLabel
             self::Pending => 'warning',
             self::Confirmed => 'success',
             self::Rejected => 'danger',
+            self::Cancelled => 'gray',
         };
+    }
+
+    /** Statuses that occupy the slot and the prospect's agenda. */
+    public function isActive(): bool
+    {
+        return $this === self::Pending || $this === self::Confirmed;
+    }
+
+    /**
+     * @return list<self>
+     */
+    public static function active(): array
+    {
+        return [self::Pending, self::Confirmed];
     }
 }

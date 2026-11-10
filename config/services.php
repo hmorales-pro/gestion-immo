@@ -24,6 +24,11 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'brevo' => [
+        'key' => env('BREVO_API_KEY'),
+        'sms_sender' => env('BREVO_SMS_SENDER', 'ImmoBook'),
+    ],
+
     'resend' => [
         'key' => env('RESEND_KEY'),
     ],

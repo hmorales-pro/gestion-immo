@@ -3,9 +3,16 @@
 namespace Tests\Unit;
 
 use App\Models\Booking;
+use App\Models\Property;
+use App\Notifications\BookingCancelled;
 use App\Notifications\BookingConfirmed;
+use App\Notifications\BookingReceived;
 use App\Notifications\BookingRejected;
+use App\Notifications\BookingRescheduled;
+use App\Notifications\InformationProvided;
+use App\Notifications\InformationRequested;
 use App\Notifications\OwnerApprovalRequested;
+use App\Notifications\VisitInvitation;
 use App\Notifications\VisitRequested;
 use App\Services\Sms\SmsSender;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -22,9 +29,22 @@ class NotificationRenderingTest extends TestCase
         $booking = Booking::factory()->create()->load(['property.agent', 'slot']);
         $owner = (new AnonymousNotifiable)->route('mail', 'owner@example.com')->route('sms', '+33600000000');
 
-        foreach ([OwnerApprovalRequested::class, VisitRequested::class, BookingConfirmed::class, BookingRejected::class] as $class) {
+        $notifications = [
+            new OwnerApprovalRequested($booking),
+            new OwnerApprovalRequested($booking, rescheduled: true),
+            new VisitRequested($booking),
+            new BookingReceived($booking),
+            new BookingConfirmed($booking),
+            new BookingRejected($booking),
+            new BookingRescheduled($booking, 'lundi 1 décembre 2026, 10:00 – 10:30'),
+            new BookingCancelled($booking),
+            new InformationRequested($booking, 'Date d\'emménagement ?'),
+            new InformationProvided($booking),
+        ];
+
+        foreach ($notifications as $notification) {
+            $class = $notification::class;
             foreach ([$booking, $booking->property->agent, $owner] as $notifiable) {
-                $notification = new $class($booking);
                 $mail = $notification->toMail($notifiable);
                 $this->assertStringContainsString($booking->property->title, $mail->subject, $class);
                 $this->assertNotEmpty((string) $mail->render());
@@ -58,5 +78,27 @@ class NotificationRenderingTest extends TestCase
         $this->assertCount(1, $sent);
         $this->assertSame('+33600000000', $sent[0][0]);
         $this->assertStringContainsString($booking->approvalUrl(), $sent[0][1]);
+    }
+
+    public function test_visit_invitation_renders(): void
+    {
+        $property = Property::factory()->create(['title' => 'Loft Canal']);
+
+        $mail = (new VisitInvitation($property, 'Camille', 'À bientôt'))->toMail(new AnonymousNotifiable);
+
+        $this->assertStringContainsString('Loft Canal', $mail->subject);
+        $this->assertSame($property->publicUrl(), $mail->actionUrl);
+        $this->assertNotEmpty((string) $mail->render());
+    }
+
+    public function test_mail_layout_is_in_french(): void
+    {
+        $booking = Booking::factory()->create();
+
+        $html = (string) (new BookingConfirmed($booking))->toMail($booking)->render();
+
+        $this->assertStringContainsString('Cordialement', $html);
+        $this->assertStringContainsString('copiez et collez ce lien', $html);
+        $this->assertStringNotContainsString('Regards', $html);
     }
 }

@@ -35,6 +35,11 @@ Les notifications sont mises en file d'attente (`QUEUE_CONNECTION=database`) : e
    il accepte (`CONFIRMED`, créneau réservé, confirmations à l'agent et au visiteur) ou refuse
    (`REJECTED`, l'agent et le visiteur sont prévenus, le créneau redevient libre).
 
+4. **Le visiteur** garde un lien privé `/rdv/{token}` (dans chaque e-mail) pour ajouter la visite à son
+   agenda, changer de créneau, annuler ou compléter ses informations.
+5. **L'agent** peut, depuis l'admin : inviter des visiteurs à choisir un créneau (e-mail avec le lien du
+   bien), approuver / refuser, déplacer, annuler une visite, et demander des informations au visiteur.
+
 ### Modes de réservation
 
 | Mode | Qui valide ? |
@@ -57,17 +62,42 @@ L'agent peut toujours approuver / refuser manuellement une demande en attente de
   accepté) et stockés au format E.164 ; e-mails validés en RFC strict.
 - Page publique : honeypot anti-spam + 5 demandes / 10 min par IP. Page propriétaire : 30 requêtes / min.
 
+## Agendas (Google, Apple, Outlook)
+
+- **Invitations** : les e-mails de confirmation, de déplacement et d'annulation contiennent une invitation
+  `.ics` (même identifiant d'événement, numéro de version incrémenté), donc l'événement est ajouté, mis à
+  jour puis supprimé dans l'agenda du visiteur, du propriétaire et de l'agent. Ils proposent aussi des liens
+  « Ajouter à Google Agenda / Outlook / Apple (.ics) ».
+- **Abonnement de l'agent** : menu « Synchroniser mon agenda ». Ce lien d'abonnement privé
+  (`/calendar/{token}.ics`) liste toutes ses visites dans Google Agenda, Apple Calendrier ou Outlook. On peut
+  le régénérer. La synchro est en lecture seule : l'agenda affiche les visites mais ne les modifie pas.
+
+## E-mails : Brevo
+
+```dotenv
+MAIL_MAILER=brevo
+BREVO_API_KEY=xkeysib-...
+MAIL_FROM_ADDRESS="visites@votre-agence.fr"   # adresse validée dans Brevo
+```
+
+Les e-mails partent par l'API transactionnelle Brevo (`symfony/brevo-mailer`). Chaque type d'e-mail a son
+tag Brevo pour les statistiques : `visit-invitation`, `owner-approval`, `prospect-request-received`,
+`booking-confirmed`, `booking-rejected`, `booking-rescheduled`, `booking-cancelled`,
+`information-requested`, etc. La réponse revient à l'agent (`Reply-To`).
+
 ## SMS
 
-`SMS_DRIVER=log` (défaut) écrit les SMS dans les logs. `twilio` et `vonage` envoient réellement, avec
-les variables `TWILIO_*` / `VONAGE_*` du `.env`. Pour un autre fournisseur, implémentez
+`SMS_DRIVER=log` (défaut) écrit les SMS dans les logs. `brevo` (réutilise `BREVO_API_KEY`), `twilio` et
+`vonage` envoient réellement. Pour un autre fournisseur, implémentez
 `App\Services\Sms\SmsSender`.
 
 ## Code
 
 | Dossier | Contenu |
 | --- | --- |
-| `app/Actions` | `CreateBooking`, `ApproveBooking`, `RejectBooking`, `GenerateSlots` (logique réutilisée par l'admin, la page publique et la page propriétaire) |
+| `app/Actions` | `CreateBooking`, `ApproveBooking`, `RejectBooking`, `RescheduleBooking`, `CancelBooking`, `RequestInformation`, `InviteProspects`, `GenerateSlots`… |
+| `app/Services/Calendar` | Génération iCalendar (invitations et flux d'abonnement), liens Google / Outlook |
+| `app/Livewire/ManageBooking.php` | Page visiteur `/rdv/{token}` |
 | `app/Filament` | `PropertyResource` (+ créneaux et demandes en relation managers), `BookingResource`, widget de stats |
 | `app/Livewire/PublicBooking.php` | Page publique `/v/{property}` |
 | `app/Http/Controllers/OwnerApprovalController.php` | Page propriétaire `/approve/{token}` |
