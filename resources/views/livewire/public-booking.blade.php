@@ -28,6 +28,20 @@
                     Votre demande doit être validée. Vous recevrez un e-mail dès qu'elle sera acceptée.
                 @endif
             </p>
+            @if ($isDemo)
+                <div class="mt-5 rounded-xl bg-amber-50 p-4 text-left text-sm text-amber-950 ring-1 ring-amber-200">
+                    <p class="font-semibold">Démo : aucun e-mail n'a été envoyé.</p>
+                    <p class="mt-1">Voici les liens que chacun recevrait :</p>
+                    <ul class="mt-2 space-y-1.5">
+                        @if ($this->booking->isPending() && $property->booking_mode === \App\Enums\BookingMode::OwnerApproval)
+                            <li>→ <a class="font-semibold underline underline-offset-2" href="{{ $this->booking->approvalUrl() }}">Le propriétaire : accepter ou refuser la visite</a></li>
+                        @elseif ($this->booking->isPending())
+                            <li>→ <a class="font-semibold underline underline-offset-2" href="{{ route('filament.admin.auth.login') }}">L'agent : valider depuis l'administration</a></li>
+                        @endif
+                        <li>→ <a class="font-semibold underline underline-offset-2" href="{{ $this->booking->manageUrl() }}">Le visiteur : gérer son rendez-vous</a></li>
+                    </ul>
+                </div>
+            @endif
             <a href="{{ $this->booking->manageUrl() }}" class="mt-5 inline-flex rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white hover:bg-slate-800">
                 {{ $confirmed ? 'Ajouter à mon agenda / gérer' : 'Gérer mon rendez-vous' }}
             </a>

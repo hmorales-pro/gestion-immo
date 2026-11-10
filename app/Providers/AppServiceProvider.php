@@ -2,12 +2,15 @@
 
 namespace App\Providers;
 
+use App\Listeners\BlockDemoNotifications;
 use App\Services\Sms\BrevoSmsSender;
 use App\Services\Sms\LogSmsSender;
 use App\Services\Sms\SmsSender;
 use App\Services\Sms\TwilioSmsSender;
 use App\Services\Sms\VonageSmsSender;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Notifications\Events\NotificationSending;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\ServiceProvider;
 use Symfony\Component\HttpClient\HttpClient;
@@ -48,6 +51,8 @@ class AppServiceProvider extends ServiceProvider
         Mail::extend('brevo', fn (array $config) => (new BrevoTransportFactory(null, HttpClient::create()))->create(
             new Dsn('brevo+api', 'default', $config['key'] ?? config('services.brevo.key')),
         ));
+
+        Event::listen(NotificationSending::class, BlockDemoNotifications::class);
 
         Model::preventSilentlyDiscardingAttributes(! $this->app->isProduction());
         Model::preventAccessingMissingAttributes(! $this->app->isProduction());

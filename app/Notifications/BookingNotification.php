@@ -18,7 +18,8 @@ abstract class BookingNotification extends Notification implements ShouldQueue
     /** Brevo tag, used to filter statistics in the Brevo dashboard. */
     protected const TAG = 'booking';
 
-    public function __construct(public readonly Booking $booking)
+    // Not readonly: queued notifications are unserialized from the child class scope.
+    public function __construct(public Booking $booking)
     {
         $this->afterCommit();
     }

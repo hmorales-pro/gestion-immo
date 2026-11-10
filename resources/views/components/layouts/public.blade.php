@@ -20,7 +20,7 @@
     </main>
 
     <footer class="mx-auto max-w-2xl px-4 pb-8 text-center text-xs text-slate-500">
-        Propulsé par {{ config('app.name') }}
+        Propulsé par <a href="{{ config('immobooking.site_url') ?: config('immobooking.github_url') }}" class="font-medium underline-offset-2 hover:underline">ImmoBooking</a>, la prise de rendez-vous de visites gratuite et open source
     </footer>
 </body>
 </html>

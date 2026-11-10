@@ -17,6 +17,7 @@ use App\Notifications\VisitRequested;
 use App\Services\Sms\SmsSender;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Notifications\AnonymousNotifiable;
+use Illuminate\Notifications\SendQueuedNotifications;
 use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
 
@@ -100,5 +101,27 @@ class NotificationRenderingTest extends TestCase
         $this->assertStringContainsString('Cordialement', $html);
         $this->assertStringContainsString('copiez et collez ce lien', $html);
         $this->assertStringNotContainsString('Regards', $html);
+    }
+
+    public function test_every_notification_survives_the_queue(): void
+    {
+        $booking = Booking::factory()->create()->load(['property.agent', 'slot']);
+
+        foreach ([
+            new OwnerApprovalRequested($booking, rescheduled: true),
+            new VisitRequested($booking),
+            new BookingReceived($booking),
+            new BookingConfirmed($booking),
+            new BookingRejected($booking),
+            new BookingRescheduled($booking, 'avant'),
+            new BookingCancelled($booking),
+            new InformationRequested($booking, 'question'),
+            new InformationProvided($booking),
+            new VisitInvitation($booking->property, 'Camille', 'message'),
+        ] as $notification) {
+            // Same round-trip as a queued job (SerializesModels).
+            $restored = unserialize(serialize(new SendQueuedNotifications(collect([$booking]), $notification)));
+            $this->assertInstanceOf($notification::class, $restored->notification);
+        }
     }
 }

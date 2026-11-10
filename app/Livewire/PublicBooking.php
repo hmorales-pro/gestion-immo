@@ -10,6 +10,7 @@ use App\Livewire\Forms\ProspectForm;
 use App\Models\Booking;
 use App\Models\Property;
 use App\Models\PropertySlot;
+use App\Support\Demo;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\ValidationException;
@@ -101,6 +102,7 @@ class PublicBooking extends Component
         return view('livewire.public-booking', [
             'employmentStatuses' => EmploymentStatus::cases(),
             'confirmed' => $this->booking?->status === BookingStatus::Confirmed,
+            'isDemo' => Demo::ownsProperty($this->property),
         ])->title($this->property->title.' — Réserver une visite');
     }
 }

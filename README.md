@@ -103,6 +103,56 @@ tag Brevo pour les statistiques : `visit-invitation`, `owner-approval`, `prospec
 | `app/Http/Controllers/OwnerApprovalController.php` | Page propriétaire `/approve/{token}` |
 | `app/Notifications` | E-mails / SMS (propriétaire, agent, visiteur) |
 
+## Hébergement mutualisé
+
+ImmoBooking tourne sur un hébergement web classique (Hostinger, o2switch, OVH…) : PHP 8.2+, MySQL ou
+SQLite, **sans worker, sans cron obligatoire, sans Node.js sur le serveur**. Les fichiers CSS/JS compilés
+sont versionnés dans `public/build`.
+
+1. Envoyez le projet sur l'hébergement (Git ou FTP), puis en SSH : `composer install --no-dev --optimize-autoloader`.
+   Sans SSH, lancez cette commande en local et envoyez aussi le dossier `vendor/`.
+2. Faites pointer la racine du domaine vers `public/`. Si l'hébergeur ne le permet pas, le `.htaccess`
+   à la racine du projet redirige tout vers `public/`, et `.env`, `vendor/`, `storage/` restent inaccessibles.
+3. Copiez `.env.mutualise.example` en `.env` et complétez-le (base MySQL, clé Brevo, domaine).
+4. `php artisan key:generate && php artisan migrate --force && php artisan make:filament-user`
+5. Pour accélérer : `php artisan config:cache && php artisan route:cache && php artisan view:cache`
+   (relancez-les après chaque mise à jour).
+
+`QUEUE_CONNECTION=sync` envoie les e-mails immédiatement, sans worker. Mise à jour : récupérez la nouvelle
+version, puis `composer install --no-dev && php artisan migrate --force` et les commandes de cache.
+
+## Site vitrine, démo et SEO (site officiel)
+
+Avec `IMMOBOOKING_WEBSITE=true`, `/` affiche la page d'accueil, et le site a aussi des guides, des pages
+légales, `sitemap.xml` et `robots.txt`. Avec `IMMOBOOKING_DEMO=true`, `/demo` ouvre une démo publique :
+
+- **Réinitialisation** : un agent `demo@immobooking.test` / `demo` est recréé avec 3 biens, tout seul,
+  toutes les 3 h (`IMMOBOOKING_DEMO_RESET_MINUTES`). Pas de cron nécessaire ; `php artisan demo:reset` force
+  une réinitialisation.
+- **Aucun envoi** : aucun e-mail ni SMS ne part pour les données de démo. Les liens propriétaire et visiteur
+  s'affichent à l'écran.
+- **Profil verrouillé** : le compte démo ne peut pas changer son profil.
+
+Pour l'installation d'une agence, laissez les deux options à `false` : `/` ouvre l'administration et
+`robots.txt` interdit l'indexation.
+
+**Ajouter un guide SEO** : créez `resources/content/guides/mon-slug.md` avec cet en-tête :
+
+```markdown
+---
+title: "Titre de 60 à 70 caractères"
+description: "Description de 140 à 160 caractères."
+date: 2026-11-10
+updated: 2026-11-20   # facultatif
+---
+```
+
+Le guide apparaît alors dans `/guides`, sur la page d'accueil (3 derniers) et dans le sitemap. Chaque guide
+a ses données structurées Article et BreadcrumbList.
+
+Mentions légales : remplissez les variables `IMMOBOOKING_LEGAL_*`, elles sont obligatoires pour un site
+édité en France.
+
 ## Tests
 
 ```bash
