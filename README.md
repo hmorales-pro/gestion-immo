@@ -109,17 +109,29 @@ ImmoBooking tourne sur un hébergement web classique (Hostinger, o2switch, OVH�
 SQLite, **sans worker, sans cron obligatoire, sans Node.js sur le serveur**. Les fichiers CSS/JS compilés
 sont versionnés dans `public/build`.
 
-1. Envoyez le projet sur l'hébergement (Git ou FTP), puis en SSH : `composer install --no-dev --optimize-autoloader`.
-   Sans SSH, lancez cette commande en local et envoyez aussi le dossier `vendor/`.
-2. Faites pointer la racine du domaine vers `public/`. Si l'hébergeur ne le permet pas, le `.htaccess`
-   à la racine du projet redirige tout vers `public/`, et `.env`, `vendor/`, `storage/` restent inaccessibles.
-3. Copiez `.env.mutualise.example` en `.env` et complétez-le (base MySQL, clé Brevo, domaine).
-4. `php artisan key:generate && php artisan migrate --force && php artisan make:filament-user`
-5. Pour accélérer : `php artisan config:cache && php artisan route:cache && php artisan view:cache`
-   (relancez-les après chaque mise à jour).
+**Première installation** (en SSH, dans le dossier du site) :
 
-`QUEUE_CONNECTION=sync` envoie les e-mails immédiatement, sans worker. Mise à jour : récupérez la nouvelle
-version, puis `composer install --no-dev && php artisan migrate --force` et les commandes de cache.
+```bash
+git clone https://github.com/hmorales-pro/gestion-immo.git booking && cd booking
+./deploy.sh --install     # crée .env à partir de .env.mutualise.example puis s'arrête
+nano .env                 # APP_URL, base MySQL, clé Brevo, IMMOBOOKING_*…
+./deploy.sh --install     # dépendances, clé, base, démo, caches
+php artisan make:filament-user
+```
+
+Faites pointer la racine du (sous-)domaine vers le dossier `public/`. Si l'hébergeur ne le permet pas, le
+`.htaccess` à la racine du projet redirige tout vers `public/`, et `.env`, `vendor/`, `storage/` restent
+inaccessibles.
+
+**Mise à jour** : `./deploy.sh`. Le script fait un `git pull`, met le site en maintenance quelques
+secondes, installe les dépendances, lance les migrations, reconstruit les caches puis remet le site en
+ligne, même si une étape échoue. Options utiles :
+
+- `PHP_BIN=/usr/bin/php8.3 ./deploy.sh` si la commande `php` n'est pas en version 8.2 ou plus ;
+- `COMPOSER_BIN="php composer.phar" ./deploy.sh` si Composer n'est pas installé ;
+- `SKIP_GIT=1 ./deploy.sh` si les fichiers sont envoyés par FTP.
+
+`QUEUE_CONNECTION=sync` envoie les e-mails immédiatement, sans worker.
 
 ## Site vitrine, démo et SEO (site officiel)
 
