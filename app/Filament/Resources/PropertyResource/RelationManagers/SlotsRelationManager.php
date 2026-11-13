@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\PropertyResource\RelationManagers;
 
+use App\Actions\Bookings\NotifyWaitlist;
 use App\Actions\Slots\GenerateSlots;
 use App\Models\Property;
 use App\Models\PropertySlot;
@@ -97,7 +98,9 @@ class SlotsRelationManager extends RelationManager
             ])
             ->headerActions([
                 $this->generateSlotsAction(),
-                Tables\Actions\CreateAction::make()->label('Créneau unique'),
+                Tables\Actions\CreateAction::make()
+                    ->label('Créneau unique')
+                    ->after(fn (NotifyWaitlist $notifyWaitlist) => $notifyWaitlist->execute($this->getOwnerRecord())),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),

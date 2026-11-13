@@ -19,7 +19,10 @@ class EditProperty extends EditRecord
                 ->color('gray')
                 ->alpineClickHandler(fn (): string => PropertyResource::copyToClipboardJs($this->getRecord()->publicUrl())),
             PropertyResource::inviteAction(Actions\Action::class)->label('Inviter des visiteurs'),
-            Actions\DeleteAction::make(),
+            Actions\ActionGroup::make([
+                ...PropertyResource::sharingActions(Actions\Action::class),
+                Actions\DeleteAction::make(),
+            ])->label('Plus')->button()->color('gray'),
         ];
     }
 }

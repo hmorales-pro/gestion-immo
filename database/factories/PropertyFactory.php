@@ -23,7 +23,7 @@ class PropertyFactory extends Factory
             'booking_mode' => BookingMode::OwnerApproval,
             'owner_name' => fake()->name(),
             'owner_email' => fake()->unique()->safeEmail(),
-            'owner_phone' => '+336'.fake()->numerify('########'),
+            'owner_phone' => '+3361'.fake()->numerify('#######'),
         ];
     }
 

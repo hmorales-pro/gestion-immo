@@ -25,6 +25,10 @@ class BookingRescheduled extends BookingNotification
     {
         $property = $this->booking->property;
 
+        if ($this->recipient($notifiable) === 'occupant') {
+            return $this->withInvitation(notifiable: $notifiable, mail: $this->occupantMail('Visite déplacée', 'Une visite du logement que vous occupez a changé d\'horaire (ancien créneau : '.$this->previousSlotLabel.').'));
+        }
+
         $mail = $this->mail()
             ->subject("Visite déplacée : {$property->title}")
             ->line("La visite de « {$property->title} » a changé de créneau.")
@@ -39,10 +43,10 @@ class BookingRescheduled extends BookingNotification
             $mail->greeting("Bonjour {$this->booking->prospect_name},")
                 ->action('Voir mon rendez-vous', $this->booking->manageUrl());
         } else {
-            $mail->line("Visiteur : {$this->booking->prospect_name} — {$this->booking->prospect_phone}");
+            $mail->line($this->visitorLine($notifiable));
         }
 
-        return $this->withInvitation($mail);
+        return $this->withInvitation($mail, $notifiable);
     }
 
     public function toSms(object $notifiable): string

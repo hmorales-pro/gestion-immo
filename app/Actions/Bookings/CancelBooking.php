@@ -8,7 +8,6 @@ use App\Models\Booking;
 use App\Models\PropertySlot;
 use App\Notifications\BookingCancelled;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Notification;
 
 /** Cancels a pending or confirmed visit, frees the slot and removes the event from calendars. */
 class CancelBooking
@@ -16,8 +15,12 @@ class CancelBooking
     /**
      * @throws BookingException
      */
+    public function __construct(private readonly NotifyWaitlist $notifyWaitlist) {}
+
     public function execute(Booking $booking, ?string $reason = null): Booking
     {
+        $wasConfirmed = $booking->isConfirmed();
+
         DB::transaction(function () use ($booking, $reason): void {
             $locked = Booking::query()->whereKey($booking->getKey())->lockForUpdate()->firstOrFail();
 
@@ -41,9 +44,14 @@ class CancelBooking
 
         $booking->notify($notification);
         $property->agent->notify($notification);
-        Notification::route('mail', $property->owner_email)
-            ->route('sms', $property->owner_phone)
-            ->notify($notification);
+        $property->ownerRoute()->notify($notification);
+
+        // The occupant only knew about confirmed visits.
+        if ($wasConfirmed) {
+            $property->occupantRoute()?->notify($notification);
+        }
+
+        $this->notifyWaitlist->execute($property);
 
         return $booking;
     }

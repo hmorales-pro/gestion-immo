@@ -20,6 +20,10 @@ class BookingConfirmed extends BookingNotification
     {
         $property = $this->booking->property;
 
+        if ($this->recipient($notifiable) === 'occupant') {
+            return $this->withInvitation(notifiable: $notifiable, mail: $this->occupantMail('Visite prévue', 'Une visite du logement que vous occupez est prévue.'));
+        }
+
         $mail = $this->mail()
             ->subject("Visite confirmée : {$property->title}")
             ->line('La visite suivante est confirmée :')
@@ -30,12 +34,17 @@ class BookingConfirmed extends BookingNotification
         if ($this->recipient($notifiable) === 'prospect') {
             $mail->greeting("Bonjour {$this->booking->prospect_name},")
                 ->line('Votre interlocuteur : '.$property->agent->name.' ('.$property->agent->email.').')
-                ->action('Modifier ou annuler le rendez-vous', $this->booking->manageUrl());
+                ->action('Modifier ou annuler le rendez-vous', $this->booking->manageUrl())
+                ->line('Après la visite, ce même lien vous permettra de donner votre avis en 30 secondes.');
         } else {
-            $mail->line("Visiteur : {$this->booking->prospect_name} — {$this->booking->prospect_phone}");
+            $mail->line($this->visitorLine($notifiable));
         }
 
-        return $this->withCalendarLinks($this->withInvitation($mail));
+        if ($this->recipient($notifiable) === 'owner') {
+            $mail->line('Suivez toutes les visites et les avis des visiteurs : ['.'votre page de suivi]('.$property->ownerReportUrl().')');
+        }
+
+        return $this->withCalendarLinks($this->withInvitation($mail, $notifiable), $notifiable);
     }
 
     public function toSms(object $notifiable): string

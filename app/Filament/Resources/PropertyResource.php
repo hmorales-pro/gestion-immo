@@ -104,6 +104,28 @@ class PropertyResource extends Resource
                         ->helperText('Reçoit le lien de validation par SMS.')
                         ->maxLength(32),
                 ]),
+
+            Forms\Components\Section::make('Locataire en place')
+                ->description('Facultatif. Le locataire sortant est prévenu de chaque visite confirmée, déplacée ou annulée (e-mail, SMS et invitation d\'agenda). Il ne voit pas les coordonnées du visiteur.')
+                ->columns(3)
+                ->collapsible()
+                ->collapsed(fn (?Property $record): bool => ! $record?->hasOccupant())
+                ->schema([
+                    Forms\Components\TextInput::make('occupant_name')
+                        ->label('Nom')
+                        ->maxLength(255),
+                    Forms\Components\TextInput::make('occupant_email')
+                        ->label('E-mail')
+                        ->email()
+                        ->rule('email:rfc,strict,filter')
+                        ->maxLength(190),
+                    Forms\Components\TextInput::make('occupant_phone')
+                        ->label('Téléphone')
+                        ->tel()
+                        ->rule('phone:FR,INTERNATIONAL')
+                        ->validationMessages(['phone' => 'Ce numéro de téléphone ne semble pas valide.'])
+                        ->maxLength(32),
+                ]),
         ]);
     }
 
@@ -146,14 +168,14 @@ class PropertyResource extends Resource
                     ->color('gray')
                     ->alpineClickHandler(fn (Property $record): string => static::copyToClipboardJs($record->publicUrl())),
                 static::inviteAction(Tables\Actions\Action::class),
-                Tables\Actions\Action::make('openPublicLink')
-                    ->label('Voir')
-                    ->icon('heroicon-o-arrow-top-right-on-square')
-                    ->color('gray')
-                    ->url(fn (Property $record): string => $record->publicUrl(), shouldOpenInNewTab: true)
-                    ->iconButton()
-                    ->tooltip('Ouvrir la page publique'),
                 Tables\Actions\EditAction::make()->iconButton(),
+                Tables\Actions\ActionGroup::make([
+                    Tables\Actions\Action::make('openPublicLink')
+                        ->label('Voir la page de réservation')
+                        ->icon('heroicon-o-arrow-top-right-on-square')
+                        ->url(fn (Property $record): string => $record->publicUrl(), shouldOpenInNewTab: true),
+                    ...static::sharingActions(Tables\Actions\Action::class),
+                ]),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -200,6 +222,36 @@ class PropertyResource extends Resource
                     ->success()
                     ->send();
             });
+    }
+
+    /**
+     * QR code poster, button for the agency website, owner follow-up link.
+     *
+     * @param  class-string<Tables\Actions\Action|Action>  $class
+     * @return list<Tables\Actions\Action|Action>
+     */
+    public static function sharingActions(string $class): array
+    {
+        return [
+            $class::make('poster')
+                ->label('Affiche et QR code')
+                ->icon('heroicon-o-qr-code')
+                ->color('gray')
+                ->url(fn (Property $record): string => route('property.poster', $record), shouldOpenInNewTab: true),
+            $class::make('embed')
+                ->label('Bouton pour votre site')
+                ->icon('heroicon-o-code-bracket')
+                ->color('gray')
+                ->modalHeading('Bouton « Réserver une visite »')
+                ->modalContent(fn (Property $record) => view('filament.modals.embed-button', ['url' => $record->publicUrl()]))
+                ->modalSubmitAction(false)
+                ->modalCancelActionLabel('Fermer'),
+            $class::make('ownerReport')
+                ->label('Copier le lien de suivi propriétaire')
+                ->icon('heroicon-o-chart-bar')
+                ->color('gray')
+                ->alpineClickHandler(fn (Property $record): string => static::copyToClipboardJs($record->ownerReportUrl())),
+        ];
     }
 
     /** Runs inside the click gesture so the Clipboard API is allowed by every browser. */

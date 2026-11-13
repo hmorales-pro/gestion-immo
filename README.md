@@ -4,7 +4,7 @@ Alternative légère, auto-hébergée et open source à Calendly, pensée pour l
 Chaque bien a son propre lien public de prise de rendez-vous ; les visites impliquent l'agent, le
 visiteur (acheteur / locataire) et le propriétaire.
 
-**Stack :** Laravel 11 · Filament 3 · Livewire 3 · TailwindCSS (+ `@tailwindcss/forms`) · SQLite (compatible PostgreSQL)
+**Stack :** Laravel 12 · PHP 8.2 à 8.5 (8.5 recommandé) · Filament 3 · Livewire 3 · TailwindCSS (+ `@tailwindcss/forms`) · SQLite (compatible PostgreSQL)
 
 ## Démarrage
 
@@ -39,6 +39,29 @@ Les notifications sont mises en file d'attente (`QUEUE_CONNECTION=database`) : e
    agenda, changer de créneau, annuler ou compléter ses informations.
 5. **L'agent** peut, depuis l'admin : inviter des visiteurs à choisir un créneau (e-mail avec le lien du
    bien), approuver / refuser, déplacer, annuler une visite, et demander des informations au visiteur.
+
+### Services autour de la visite (sans entretien)
+
+- **Affiche et QR code** : pour chaque bien, une affiche A4 prête à imprimer et un QR code SVG
+  (action « Affiche et QR code »).
+- **Bouton pour le site de l'agence** : un code HTML à coller qui ouvre la page de réservation du bien.
+- **Liste d'attente** : quand tout est complet, le visiteur laisse son e-mail. Il est prévenu une seule fois
+  dès qu'un créneau se libère (annulation, refus, déplacement, nouveaux créneaux), puis son adresse est
+  supprimée.
+- **Bon de visite signé** : le visiteur signe sur le téléphone de l'agent (`/bon-de-visite/{id}`). Le bon est
+  pré-rempli, horodaté, archivé et imprimable.
+- **Avis de visite** : après la visite, la page « Mon rendez-vous » propose un avis en 30 secondes, transmis
+  à l'agent et au propriétaire.
+- **Suivi propriétaire** : une page privée (`/suivi/{token}`) avec les visites à venir, les visites passées
+  et les avis. Les visiteurs y sont anonymisés (prénom et initiale).
+- **Locataire en place** : facultatif. Il est prévenu des visites confirmées, déplacées ou annulées, sans les
+  coordonnées du visiteur.
+
+Aucun de ces services ne demande de tâche planifiée, d'API externe ni de données à mettre à jour.
+
+Chaque participant ne reçoit que ce qui le concerne : l'invitation d'agenda ne liste que son destinataire,
+le propriétaire ne reçoit pas le téléphone du visiteur, et les liens privés du visiteur ne sont envoyés
+qu'au visiteur.
 
 ### Modes de réservation
 
@@ -105,21 +128,33 @@ tag Brevo pour les statistiques : `visit-invitation`, `owner-approval`, `prospec
 
 ## Hébergement mutualisé
 
-ImmoBooking tourne sur un hébergement web classique (Hostinger, o2switch, OVH…) : PHP 8.2+, MySQL ou
+ImmoBooking tourne sur un hébergement web classique (Hostinger, o2switch, OVH…) : PHP 8.2 à 8.5 (choisissez 8.5), MySQL ou
 SQLite, **sans worker, sans cron obligatoire, sans Node.js sur le serveur**. Les fichiers CSS/JS compilés
 sont versionnés dans `public/build`.
 
-1. Envoyez le projet sur l'hébergement (Git ou FTP), puis en SSH : `composer install --no-dev --optimize-autoloader`.
-   Sans SSH, lancez cette commande en local et envoyez aussi le dossier `vendor/`.
-2. Faites pointer la racine du domaine vers `public/`. Si l'hébergeur ne le permet pas, le `.htaccess`
-   à la racine du projet redirige tout vers `public/`, et `.env`, `vendor/`, `storage/` restent inaccessibles.
-3. Copiez `.env.mutualise.example` en `.env` et complétez-le (base MySQL, clé Brevo, domaine).
-4. `php artisan key:generate && php artisan migrate --force && php artisan make:filament-user`
-5. Pour accélérer : `php artisan config:cache && php artisan route:cache && php artisan view:cache`
-   (relancez-les après chaque mise à jour).
+**Première installation** (en SSH, dans le dossier du site) :
 
-`QUEUE_CONNECTION=sync` envoie les e-mails immédiatement, sans worker. Mise à jour : récupérez la nouvelle
-version, puis `composer install --no-dev && php artisan migrate --force` et les commandes de cache.
+```bash
+git clone https://github.com/hmorales-pro/gestion-immo.git booking && cd booking
+./deploy.sh --install     # crée .env à partir de .env.mutualise.example puis s'arrête
+nano .env                 # APP_URL, base MySQL, clé Brevo, IMMOBOOKING_*…
+./deploy.sh --install     # dépendances, clé, base, démo, caches
+php artisan make:filament-user
+```
+
+Faites pointer la racine du (sous-)domaine vers le dossier `public/`. Si l'hébergeur ne le permet pas, le
+`.htaccess` à la racine du projet redirige tout vers `public/`, et `.env`, `vendor/`, `storage/` restent
+inaccessibles.
+
+**Mise à jour** : `./deploy.sh`. Le script fait un `git pull`, met le site en maintenance quelques
+secondes, installe les dépendances, lance les migrations, reconstruit les caches puis remet le site en
+ligne, même si une étape échoue. Options utiles :
+
+- `PHP_BIN=/usr/bin/php8.3 ./deploy.sh` si la commande `php` n'est pas en version 8.2 ou plus ;
+- `COMPOSER_BIN="php composer.phar" ./deploy.sh` si Composer n'est pas installé ;
+- `SKIP_GIT=1 ./deploy.sh` si les fichiers sont envoyés par FTP.
+
+`QUEUE_CONNECTION=sync` envoie les e-mails immédiatement, sans worker.
 
 ## Site vitrine, démo et SEO (site officiel)
 
@@ -135,6 +170,10 @@ légales, `sitemap.xml` et `robots.txt`. Avec `IMMOBOOKING_DEMO=true`, `/demo` o
 
 Pour l'installation d'une agence, laissez les deux options à `false` : `/` ouvre l'administration et
 `robots.txt` interdit l'indexation.
+
+**Outils gratuits** (`/outils`) : calculateur « quel salaire pour louer » (règle des 3 fois le loyer),
+générateur de QR code, checklist de visite imprimable et modèle de bon de visite. Ils ne reposent sur aucun
+barème légal : rien à mettre à jour.
 
 **Ajouter un guide SEO** : créez `resources/content/guides/mon-slug.md` avec cet en-tête :
 
@@ -158,3 +197,7 @@ Mentions légales : remplissez les variables `IMMOBOOKING_LEGAL_*`, elles sont o
 ```bash
 php artisan test
 ```
+
+GitHub Actions lance les tests sur PHP 8.3, 8.4 et 8.5, avec `composer audit`, à chaque push et
+automatiquement le 1er de chaque mois. Activez les notifications GitHub pour être prévenu si un test
+échoue ou si une dépendance devient vulnérable, sans rien surveiller vous-même.

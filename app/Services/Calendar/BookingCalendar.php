@@ -15,11 +15,15 @@ class BookingCalendar
      * Invitation for one booking. Confirmed → REQUEST, cancelled / rejected → CANCEL,
      * pending → REQUEST with STATUS:TENTATIVE.
      */
-    public function invitation(Booking $booking): IcsCalendar
+    /**
+     * @param  array{name: string, email: string}|null  $attendee  the recipient only: participants never see
+     *                                                             each other's e-mail address.
+     */
+    public function invitation(Booking $booking, ?array $attendee = null): IcsCalendar
     {
         $method = $booking->isActive() ? IcsCalendar::METHOD_REQUEST : IcsCalendar::METHOD_CANCEL;
 
-        return (new IcsCalendar($method))->addEvent($this->event($booking));
+        return (new IcsCalendar($method))->addEvent($this->event($booking, attendees: $attendee ? [$attendee] : []));
     }
 
     /** Subscribable feed of an agent's upcoming and recent visits. */
@@ -42,7 +46,10 @@ class BookingCalendar
     /**
      * @return array<string, mixed>
      */
-    public function event(Booking $booking, bool $forAgent = false): array
+    /**
+     * @param  list<array{name: string, email: string}>  $attendees
+     */
+    public function event(Booking $booking, bool $forAgent = false, array $attendees = []): array
     {
         $property = $booking->property;
         $agent = $property->agent;
@@ -50,10 +57,10 @@ class BookingCalendar
         $description = collect([
             'Visite : '.$property->title,
             'Adresse : '.$property->address,
-            'Visiteur : '.$booking->prospect_name.' — '.$booking->prospect_phone,
+            $forAgent ? 'Visiteur : '.$booking->prospect_name.' — '.$booking->prospect_phone : null,
             'Agent : '.$agent->name.' — '.$agent->email,
-            $forAgent ? 'Statut : '.$booking->status->getLabel() : 'Gérer le rendez-vous : '.$booking->manageUrl(),
-        ])->implode("\n");
+            $forAgent ? 'Statut : '.$booking->status->getLabel() : null,
+        ])->filter()->implode("\n");
 
         return [
             'uid' => $booking->calendarUid(),
@@ -62,7 +69,7 @@ class BookingCalendar
             'summary' => ($forAgent ? $booking->prospect_name.' · ' : '').'Visite — '.$property->title,
             'location' => $property->address,
             'description' => $description,
-            'url' => $forAgent ? null : $booking->manageUrl(),
+            'url' => null,
             'sequence' => $booking->sequence,
             'updated' => $booking->updated_at,
             'status' => match ($booking->status) {
@@ -71,10 +78,7 @@ class BookingCalendar
                 default => 'CANCELLED',
             },
             'organizer' => ['name' => $agent->name, 'email' => $agent->email],
-            'attendees' => [
-                ['name' => $booking->prospect_name, 'email' => $booking->prospect_email],
-                ['name' => $property->owner_name, 'email' => $property->owner_email],
-            ],
+            'attendees' => $attendees,
         ];
     }
 

@@ -6,6 +6,8 @@ use App\Actions\Slots\GenerateSlots;
 use App\Enums\BookingMode;
 use App\Enums\BookingStatus;
 use App\Enums\EmploymentStatus;
+use App\Enums\FeedbackInterest;
+use App\Enums\FeedbackPrice;
 use App\Models\Booking;
 use App\Models\Property;
 use App\Models\User;
@@ -77,6 +79,8 @@ class Demo
                     'description' => "68 m², 3e étage avec ascenseur, balcon plein sud.\nLoyer 1 150 € CC. Disponible le 1er du mois.",
                     'booking_mode' => BookingMode::OwnerApproval,
                     'owner_name' => 'Mme Lefèvre (propriétaire démo)',
+                    'occupant_name' => 'M. Durand (locataire sortant démo)',
+                    'occupant_email' => 'locataire@immobooking.test',
                 ],
                 [
                     'title' => 'Studio meublé — Part-Dieu',
@@ -127,6 +131,33 @@ class Demo
                     'employment_status' => $employment,
                     'status' => $status,
                     'decided_at' => $status === BookingStatus::Confirmed ? now() : null,
+                ]);
+            }
+
+            // Visits already done, with feedback, so the owner's follow-up page is not empty.
+            $past = [
+                ['Sarah Lopez', EmploymentStatus::Cdi, FeedbackInterest::Yes, FeedbackPrice::Fair, 'Très lumineux, le balcon est un vrai plus. Je prépare mon dossier.'],
+                ['Thomas Girard', EmploymentStatus::Freelance, FeedbackInterest::Maybe, FeedbackPrice::High, 'Bel appartement mais un peu cher pour le quartier.'],
+                ['Julie Fontaine', EmploymentStatus::Cdd, FeedbackInterest::No, null, 'La chambre est trop petite pour nous.'],
+            ];
+
+            foreach ($past as $i => [$name, $employment, $interest, $price, $comment]) {
+                $start = now()->subDays($i + 1)->setTime(18, 0);
+                $slot = $properties[0]->slots()->create(['start_time' => $start, 'end_time' => $start->copy()->addMinutes(30), 'is_booked' => true]);
+
+                Booking::query()->create([
+                    'property_id' => $properties[0]->id,
+                    'property_slot_id' => $slot->id,
+                    'prospect_name' => $name,
+                    'prospect_email' => 'ancien'.($i + 1).'@immobooking.test',
+                    'prospect_phone' => '+3361111111'.$i,
+                    'employment_status' => $employment,
+                    'status' => BookingStatus::Confirmed,
+                    'decided_at' => $start->copy()->subDays(2),
+                    'feedback_interest' => $interest,
+                    'feedback_price' => $price,
+                    'feedback_comment' => $comment,
+                    'feedback_at' => $start->copy()->addHours(2),
                 ]);
             }
 

@@ -33,9 +33,25 @@ class BookingActions
             static::approve($class),
             static::reject($class),
             static::reschedule($class),
+            static::voucher($class),
             static::requestInformation($class),
             static::cancel($class),
         ];
+    }
+
+    /**
+     * Visit voucher signed by the visitor on the agent's phone.
+     *
+     * @param  class-string<TableAction|PageAction>  $class
+     */
+    public static function voucher(string $class = TableAction::class): TableAction|PageAction
+    {
+        return static::base($class, 'voucher')
+            ->label(fn (Booking $record): string => $record->hasSignedVoucher() ? 'Bon de visite signé' : 'Faire signer le bon de visite')
+            ->icon('heroicon-o-pencil-square')
+            ->color(fn (Booking $record): string => $record->hasSignedVoucher() ? 'success' : 'gray')
+            ->visible(fn (Booking $record): bool => $record->isConfirmed())
+            ->url(fn (Booking $record): string => route('voucher.sign', $record));
     }
 
     /** @param class-string<TableAction|PageAction> $class */

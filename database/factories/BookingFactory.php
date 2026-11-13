@@ -20,7 +20,7 @@ class BookingFactory extends Factory
             'property_id' => fn (array $attributes) => PropertySlot::find($attributes['property_slot_id'])->property_id,
             'prospect_name' => fake()->name(),
             'prospect_email' => fake()->unique()->safeEmail(),
-            'prospect_phone' => '+336'.fake()->numerify('########'),
+            'prospect_phone' => '+3361'.fake()->numerify('#######'),
             'employment_status' => fake()->randomElement(EmploymentStatus::cases()),
             'status' => BookingStatus::Pending,
         ];

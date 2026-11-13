@@ -8,7 +8,6 @@ use App\Models\Booking;
 use App\Models\PropertySlot;
 use App\Notifications\BookingConfirmed;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Notification;
 
 class ApproveBooking
 {
@@ -47,10 +46,10 @@ class ApproveBooking
         $property->agent->notify($notification);
 
         if ($notifyOwner) {
-            Notification::route('mail', $property->owner_email)
-                ->route('sms', $property->owner_phone)
-                ->notify($notification);
+            $property->ownerRoute()->notify($notification);
         }
+
+        $property->occupantRoute()?->notify($notification);
 
         return $booking;
     }

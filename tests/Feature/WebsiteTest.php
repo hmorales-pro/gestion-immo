@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Filament\Pages\Auth\EditProfile;
 use App\Filament\Pages\Auth\Login;
+use App\Http\Controllers\Site\ToolsController;
 use App\Listeners\BlockDemoNotifications;
 use App\Livewire\PublicBooking;
 use App\Models\Booking;
@@ -167,5 +168,42 @@ class WebsiteTest extends TestCase
             ->call('save');
 
         $this->assertSame(config('immobooking.demo.email'), $agent->fresh()->email);
+    }
+
+    public function test_free_tools_pages(): void
+    {
+        $this->get('/outils')->assertOk()->assertSee('Outils gratuits');
+
+        foreach (array_keys(ToolsController::TOOLS) as $slug) {
+            $html = $this->get('/outils/'.$slug)->assertOk()->getContent();
+            $this->assertSame(1, substr_count($html, '<h1'), $slug);
+            $this->assertStringContainsString('"@type":"BreadcrumbList"', $html, $slug);
+        }
+
+        $xml = $this->get('/sitemap.xml')->getContent();
+        $this->assertStringContainsString('/outils/salaire-pour-louer', $xml);
+    }
+
+    public function test_rent_salary_calculator(): void
+    {
+        $this->get('/outils/salaire-pour-louer?loyer=900')->assertOk()->assertSee('2 700 €');
+        $this->get('/outils/salaire-pour-louer?revenus=2500')->assertOk()->assertSee('833 €');
+        $this->get('/outils/salaire-pour-louer?loyer=abc')->assertOk()->assertDontSee('les bailleurs attendent');
+    }
+
+    public function test_qr_code_generator(): void
+    {
+        $this->get('/outils/generateur-qr-code?url=exemple.fr/annonce/12')
+            ->assertOk()
+            ->assertSee('Votre QR code est prêt')
+            ->assertSee('https://exemple.fr/annonce/12')
+            ->assertSee('<svg', false);
+
+        $this->get('/outils/generateur-qr-code?url=javascript:alert(1)')->assertOk()->assertSee('ne semble pas valide');
+
+        $this->get('/outils/generateur-qr-code/qr-code.svg?url=https://exemple.fr')
+            ->assertOk()
+            ->assertHeader('Content-Type', 'image/svg+xml');
+        $this->get('/outils/generateur-qr-code/qr-code.svg?url=nope')->assertStatus(422);
     }
 }

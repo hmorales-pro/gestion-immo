@@ -275,4 +275,36 @@ class AdminPanelTest extends TestCase
             ->assertSee($this->agent->fresh()->calendarFeedUrl(), escape: false)
             ->assertSee('calendar.google.com', escape: false);
     }
+
+    public function test_occupant_can_be_saved_and_sharing_actions_exist(): void
+    {
+        $property = Property::factory()->for($this->agent, 'agent')->create();
+
+        Livewire::test(EditProperty::class, ['record' => $property->getRouteKey()])
+            ->fillForm([
+                'occupant_name' => 'M. Durand',
+                'occupant_email' => 'durand@example.com',
+                'occupant_phone' => '06 11 22 33 44',
+            ])
+            ->call('save')
+            ->assertHasNoFormErrors()
+            ->assertActionExists('poster')
+            ->assertActionExists('embed')
+            ->assertActionExists('ownerReport');
+
+        $this->assertTrue($property->fresh()->hasOccupant());
+
+        Livewire::test(ListProperties::class)
+            ->mountTableAction('embed', $property)
+            ->assertSee('Réserver une visite')
+            ->assertSee($property->publicUrl());
+    }
+
+    public function test_voucher_action_opens_the_signing_page(): void
+    {
+        $booking = $this->confirmedBookingForAgent();
+
+        Livewire::test(ListBookings::class)
+            ->assertTableActionHasUrl('voucher', route('voucher.sign', $booking), $booking);
+    }
 }

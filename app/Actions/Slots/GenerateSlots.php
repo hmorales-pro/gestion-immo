@@ -2,6 +2,7 @@
 
 namespace App\Actions\Slots;
 
+use App\Actions\Bookings\NotifyWaitlist;
 use App\Models\Property;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -14,6 +15,8 @@ use InvalidArgumentException;
  */
 class GenerateSlots
 {
+    public function __construct(private readonly NotifyWaitlist $notifyWaitlist) {}
+
     /**
      * @return array{created: int, skipped: int}
      */
@@ -53,6 +56,10 @@ class GenerateSlots
                 }
             }
         });
+
+        if ($created > 0) {
+            $this->notifyWaitlist->execute($property);
+        }
 
         return ['created' => $created, 'skipped' => $skipped];
     }

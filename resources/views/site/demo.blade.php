@@ -22,7 +22,7 @@
             </li>
             <li class="rounded-2xl p-6 ring-1 ring-slate-200">
                 <p class="text-sm font-semibold text-amber-700">3 · Vous êtes l'agent</p>
-                <p class="mt-2 text-slate-600">Connectez-vous à l'administration (identifiants pré-remplis) : biens, créneaux, demandes, déplacement, synchro agenda…</p>
+                <p class="mt-2 text-slate-600">Connectez-vous à l'administration (identifiants pré-remplis) : créneaux, demandes, affiche avec QR code, bon de visite signé, synchro agenda…</p>
             </li>
         </ol>
 
@@ -36,6 +36,7 @@
                     <p class="mt-3 flex-1 text-sm text-slate-500">{{ $property->booking_mode->getDescription() }}</p>
                     <p class="mt-3 text-sm text-slate-500">{{ $property->available_slots_count }} créneaux disponibles</p>
                     <a href="{{ $property->publicUrl() }}" class="mt-5 rounded-xl bg-amber-500 px-4 py-3 text-center font-semibold text-slate-950 hover:bg-amber-400">Réserver une visite</a>
+                    <a href="{{ $property->ownerReportUrl() }}" class="mt-2 rounded-xl px-4 py-2.5 text-center text-sm font-semibold text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50">Vue du propriétaire</a>
                 </article>
             @endforeach
         </div>

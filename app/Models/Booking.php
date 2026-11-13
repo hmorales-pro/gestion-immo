@@ -4,6 +4,8 @@ namespace App\Models;
 
 use App\Enums\BookingStatus;
 use App\Enums\EmploymentStatus;
+use App\Enums\FeedbackInterest;
+use App\Enums\FeedbackPrice;
 use Database\Factories\BookingFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -47,9 +49,16 @@ class Booking extends Model
         'decided_at',
         'cancellation_reason',
         'information_requested_at',
+        'voucher_signer_name',
+        'voucher_signature',
+        'voucher_signed_at',
+        'feedback_interest',
+        'feedback_price',
+        'feedback_comment',
+        'feedback_at',
     ];
 
-    protected $hidden = ['token', 'manage_token'];
+    protected $hidden = ['token', 'manage_token', 'voucher_signature'];
 
     protected $attributes = [
         'status' => 'PENDING',
@@ -63,6 +72,10 @@ class Booking extends Model
             'decided_at' => 'datetime',
             'information_requested_at' => 'datetime',
             'sequence' => 'integer',
+            'voucher_signed_at' => 'datetime',
+            'feedback_interest' => FeedbackInterest::class,
+            'feedback_price' => FeedbackPrice::class,
+            'feedback_at' => 'datetime',
         ];
     }
 
@@ -120,6 +133,22 @@ class Booking extends Model
     public function manageUrl(): string
     {
         return route('booking.manage', $this->manage_token);
+    }
+
+    /** The visit has taken place: confirmed and its slot has started. */
+    public function hasHappened(): bool
+    {
+        return $this->isConfirmed() && $this->slot->start_time->isPast();
+    }
+
+    public function hasFeedback(): bool
+    {
+        return $this->feedback_at !== null;
+    }
+
+    public function hasSignedVoucher(): bool
+    {
+        return $this->voucher_signed_at !== null;
     }
 
     public function icsUrl(): string

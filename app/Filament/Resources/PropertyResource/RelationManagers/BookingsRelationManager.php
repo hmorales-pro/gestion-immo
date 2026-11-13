@@ -30,6 +30,7 @@ class BookingsRelationManager extends RelationManager
                 BookingActions::approve()->iconButton()->tooltip('Approuver'),
                 BookingActions::reject()->iconButton()->tooltip('Refuser'),
                 Tables\Actions\ActionGroup::make([
+                    BookingActions::voucher(),
                     BookingActions::reschedule(),
                     BookingActions::requestInformation(),
                     BookingActions::cancel(),
