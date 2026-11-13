@@ -6,7 +6,7 @@
 #   ./deploy.sh             mise à jour (git pull, dépendances, migrations, caches)
 #
 # Variables facultatives :
-#   PHP_BIN=/usr/bin/php8.3 ./deploy.sh      si "php" n'est pas en 8.2+
+#   PHP_BIN=/usr/bin/php8.5 ./deploy.sh      si "php" en SSH n'est pas la bonne version
 #   COMPOSER_BIN="php composer.phar" ./deploy.sh
 #   SKIP_GIT=1 ./deploy.sh                   si les fichiers sont envoyés par FTP
 #
@@ -23,7 +23,7 @@ main() {
     PHP="${PHP_BIN:-php}"
     step "Vérification de PHP"
     "$PHP" -r 'exit(version_compare(PHP_VERSION, "8.2.0", ">=") ? 0 : 1);' \
-        || fail "PHP 8.2 ou plus est requis (trouvé : $("$PHP" -r 'echo PHP_VERSION;')). Changez la version dans le panneau de l'hébergeur ou utilisez PHP_BIN=/chemin/vers/php8.3."
+        || fail "PHP 8.2 ou plus est requis (trouvé : $("$PHP" -r 'echo PHP_VERSION;')). Changez la version dans le panneau de l'hébergeur ou utilisez PHP_BIN=/chemin/vers/php8.5."
     echo "PHP $("$PHP" -r 'echo PHP_VERSION;')"
 
     COMPOSER="$(find_composer)"

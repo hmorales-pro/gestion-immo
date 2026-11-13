@@ -90,7 +90,7 @@ class VisitServicesTest extends TestCase
     public function test_owner_follow_up_page_shows_visits_and_feedback_without_contact_details(): void
     {
         $booking = $this->pastVisit();
-        $booking->update(['feedback_interest' => 'yes', 'feedback_price' => 'high', 'feedback_comment' => 'Très lumineux', 'feedback_at' => now()]);
+        $booking->update(['prospect_name' => 'Camille Zebulonski', 'feedback_interest' => 'yes', 'feedback_price' => 'high', 'feedback_comment' => 'Très lumineux', 'feedback_at' => now()]);
         $upcoming = Booking::factory()->create([
             'property_id' => $booking->property_id,
             'property_slot_id' => PropertySlot::factory()->for($booking->property)->create()->id,
@@ -99,13 +99,13 @@ class VisitServicesTest extends TestCase
 
         $this->get($booking->property->ownerReportUrl())
             ->assertOk()
-            ->assertSee('Camille M.')
+            ->assertSee('Camille Z.')
             ->assertSee('Léo B.')
             ->assertSee('Très lumineux')
             ->assertSee('Trop cher')
             ->assertDontSee($booking->prospect_email)
             ->assertDontSee($booking->prospect_phone)
-            ->assertDontSee('Martin');
+            ->assertDontSee('Zebulonski');
 
         $this->get(route('owner.report', str_repeat('x', 64)))->assertNotFound();
     }

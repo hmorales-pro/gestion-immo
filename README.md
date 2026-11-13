@@ -4,7 +4,7 @@ Alternative légère, auto-hébergée et open source à Calendly, pensée pour l
 Chaque bien a son propre lien public de prise de rendez-vous ; les visites impliquent l'agent, le
 visiteur (acheteur / locataire) et le propriétaire.
 
-**Stack :** Laravel 11 · Filament 3 · Livewire 3 · TailwindCSS (+ `@tailwindcss/forms`) · SQLite (compatible PostgreSQL)
+**Stack :** Laravel 12 · PHP 8.2 à 8.5 (8.5 recommandé) · Filament 3 · Livewire 3 · TailwindCSS (+ `@tailwindcss/forms`) · SQLite (compatible PostgreSQL)
 
 ## Démarrage
 
@@ -128,7 +128,7 @@ tag Brevo pour les statistiques : `visit-invitation`, `owner-approval`, `prospec
 
 ## Hébergement mutualisé
 
-ImmoBooking tourne sur un hébergement web classique (Hostinger, o2switch, OVH…) : PHP 8.2+, MySQL ou
+ImmoBooking tourne sur un hébergement web classique (Hostinger, o2switch, OVH…) : PHP 8.2 à 8.5 (choisissez 8.5), MySQL ou
 SQLite, **sans worker, sans cron obligatoire, sans Node.js sur le serveur**. Les fichiers CSS/JS compilés
 sont versionnés dans `public/build`.
 
@@ -197,3 +197,7 @@ Mentions légales : remplissez les variables `IMMOBOOKING_LEGAL_*`, elles sont o
 ```bash
 php artisan test
 ```
+
+GitHub Actions lance les tests sur PHP 8.3, 8.4 et 8.5, avec `composer audit`, à chaque push et
+automatiquement le 1er de chaque mois. Activez les notifications GitHub pour être prévenu si un test
+échoue ou si une dépendance devient vulnérable, sans rien surveiller vous-même.

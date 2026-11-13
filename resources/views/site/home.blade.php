@@ -6,7 +6,7 @@
         ['Peut-on se passer de la validation du propriétaire ?', "Oui, chaque bien a son mode : validation par le propriétaire, validation par l'agent depuis l'administration, ou confirmation immédiate. Vous choisissez au cas par cas."],
         ['Est-ce compatible avec Google Agenda, Apple Calendrier et Outlook ?', "Oui. Chaque confirmation, déplacement ou annulation est envoyé avec une invitation d'agenda (.ics) qui met l'événement à jour automatiquement. Chaque agent dispose aussi d'un lien d'abonnement pour voir toutes ses visites dans son agenda habituel."],
         ['Comment éviter les doubles réservations ?', "Un créneau demandé est bloqué jusqu'à la décision, deux créneaux d'un même bien ne peuvent pas se chevaucher, et un même visiteur ne peut pas réserver deux visites au même moment."],
-        ['Peut-on l\'installer sur un hébergement mutualisé ?', "Oui. ImmoBooking fonctionne avec PHP 8.2 et MySQL ou SQLite, sans serveur dédié, sans tâche planifiée obligatoire et sans file d'attente à surveiller. Les e-mails peuvent partir par Brevo ou par le SMTP de votre hébergeur."],
+        ['Peut-on l\'installer sur un hébergement mutualisé ?', "Oui. ImmoBooking fonctionne avec PHP 8.2 à 8.5 et MySQL ou SQLite, sans serveur dédié, sans tâche planifiée obligatoire et sans file d'attente à surveiller. Les e-mails peuvent partir par Brevo ou par le SMTP de votre hébergeur."],
         ['Où sont stockées les données des visiteurs ?', "Sur votre propre hébergement. Vous restez maître des données personnelles collectées et pouvez choisir un hébergeur en France ou en Europe."],
     ];
 
@@ -210,7 +210,7 @@
                 <h2 class="text-2xl font-bold tracking-tight">Installez-le sur un simple hébergement mutualisé</h2>
                 <p class="mt-4 text-slate-700">Pas de serveur dédié ni de compétences système : ImmoBooking tourne sur l'hébergement web que vous avez probablement déjà.</p>
                 <ul class="mt-5 space-y-2 text-sm text-slate-700">
-                    <li>• PHP 8.2 et MySQL (ou SQLite)</li>
+                    <li>• PHP 8.2 à 8.5 et MySQL (ou SQLite)</li>
                     <li>• Aucune tâche planifiée ni file d'attente obligatoire</li>
                     <li>• E-mails via Brevo ou le SMTP de l'hébergeur</li>
                     <li>• Vos données restent chez vous, en France si vous le souhaitez</li>
