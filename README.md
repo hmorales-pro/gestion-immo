@@ -40,6 +40,29 @@ Les notifications sont mises en file d'attente (`QUEUE_CONNECTION=database`) : e
 5. **L'agent** peut, depuis l'admin : inviter des visiteurs à choisir un créneau (e-mail avec le lien du
    bien), approuver / refuser, déplacer, annuler une visite, et demander des informations au visiteur.
 
+### Services autour de la visite (sans entretien)
+
+- **Affiche et QR code** : pour chaque bien, une affiche A4 prête à imprimer et un QR code SVG
+  (action « Affiche et QR code »).
+- **Bouton pour le site de l'agence** : un code HTML à coller qui ouvre la page de réservation du bien.
+- **Liste d'attente** : quand tout est complet, le visiteur laisse son e-mail. Il est prévenu une seule fois
+  dès qu'un créneau se libère (annulation, refus, déplacement, nouveaux créneaux), puis son adresse est
+  supprimée.
+- **Bon de visite signé** : le visiteur signe sur le téléphone de l'agent (`/bon-de-visite/{id}`). Le bon est
+  pré-rempli, horodaté, archivé et imprimable.
+- **Avis de visite** : après la visite, la page « Mon rendez-vous » propose un avis en 30 secondes, transmis
+  à l'agent et au propriétaire.
+- **Suivi propriétaire** : une page privée (`/suivi/{token}`) avec les visites à venir, les visites passées
+  et les avis. Les visiteurs y sont anonymisés (prénom et initiale).
+- **Locataire en place** : facultatif. Il est prévenu des visites confirmées, déplacées ou annulées, sans les
+  coordonnées du visiteur.
+
+Aucun de ces services ne demande de tâche planifiée, d'API externe ni de données à mettre à jour.
+
+Chaque participant ne reçoit que ce qui le concerne : l'invitation d'agenda ne liste que son destinataire,
+le propriétaire ne reçoit pas le téléphone du visiteur, et les liens privés du visiteur ne sont envoyés
+qu'au visiteur.
+
 ### Modes de réservation
 
 | Mode | Qui valide ? |
@@ -147,6 +170,10 @@ légales, `sitemap.xml` et `robots.txt`. Avec `IMMOBOOKING_DEMO=true`, `/demo` o
 
 Pour l'installation d'une agence, laissez les deux options à `false` : `/` ouvre l'administration et
 `robots.txt` interdit l'indexation.
+
+**Outils gratuits** (`/outils`) : calculateur « quel salaire pour louer » (règle des 3 fois le loyer),
+générateur de QR code, checklist de visite imprimable et modèle de bon de visite. Ils ne reposent sur aucun
+barème légal : rien à mettre à jour.
 
 **Ajouter un guide SEO** : créez `resources/content/guides/mon-slug.md` avec cet en-tête :
 

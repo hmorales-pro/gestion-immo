@@ -12,12 +12,16 @@
 
     $features = [
         ['Un lien par bien', 'Partagez-le sur vos annonces, par SMS ou sur votre site. Le visiteur voit uniquement les créneaux encore libres.', 'M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244'],
-        ['Validation propriétaire', "Le propriétaire accepte ou refuse en un clic, depuis l'e-mail ou le SMS reçu. Sans compte.", 'M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z'],
+        ['Validation propriétaire', "Le propriétaire accepte ou refuse en un clic, depuis l'e-mail ou le SMS reçu. Sans compte. Le locataire en place est prévenu.", 'M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z'],
         ['Créneaux en série', 'Saisissez « samedi 10 h – 12 h », ImmoBooking découpe en visites de 30 minutes, sur plusieurs semaines si besoin.', 'M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5'],
         ['Synchro agendas', "Invitations Google Agenda, Apple Calendrier et Outlook, mises à jour à chaque changement. Flux d'abonnement pour chaque agent.", 'M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99'],
         ['E-mails et SMS automatiques', "Invitation à réserver, accusé de réception, confirmation, déplacement, annulation, demande d'informations : tout part tout seul.", 'M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75'],
         ['Le visiteur gère seul', 'Changer de créneau, annuler, compléter son dossier : depuis son lien privé, sans vous appeler.', 'M10.5 1.5H8.25A2.25 2.25 0 0 0 6 3.75v16.5a2.25 2.25 0 0 0 2.25 2.25h7.5A2.25 2.25 0 0 0 18 20.25V3.75a2.25 2.25 0 0 0-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3'],
         ['Zéro double réservation', 'Créneaux bloqués pendant la validation, chevauchements interdits, numéros et e-mails vérifiés.', 'M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z'],
+        ['Affiche et QR code', 'Une affiche A4 prête à imprimer pour la vitrine ou le panneau : le passant scanne et réserve.', 'M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0 1 3.75 9.375v-4.5ZM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 0 1-1.125-1.125v-4.5ZM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0 1 13.5 9.375v-4.5Z'],
+        ['Bon de visite signé', 'Le visiteur signe sur votre téléphone à la fin de la visite. Pré-rempli, horodaté, archivé, imprimable.', 'm16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125'],
+        ['Avis et suivi propriétaire', "Après la visite, le visiteur donne son avis en 30 secondes. Le propriétaire suit visites et retours sur sa page personnelle.", 'M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z'],
+        ['Liste d\'attente', 'Tout est complet ? Le visiteur laisse son e-mail et il est prévenu dès qu\'un créneau se libère.', 'M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0'],
         ['Multi-agents', "Chaque agent ne voit que ses biens et ses visites. Idéal pour une agence ou un réseau de mandataires.", 'M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z'],
     ];
 
@@ -229,6 +233,24 @@
                         </summary>
                         <p class="mt-3 leading-relaxed text-slate-600">{{ $a }}</p>
                     </details>
+                @endforeach
+            </div>
+        </div>
+    </section>
+
+    {{-- Free tools --}}
+    <section class="py-20">
+        <div class="mx-auto max-w-6xl px-4 sm:px-6">
+            <div class="flex items-end justify-between gap-4">
+                <h2 class="text-3xl font-bold tracking-tight">Outils gratuits, sans inscription</h2>
+                <a href="{{ route('site.tools') }}" class="hidden shrink-0 font-semibold text-amber-700 sm:inline">Tous les outils →</a>
+            </div>
+            <div class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                @foreach (\App\Http\Controllers\Site\ToolsController::TOOLS as $slug => [$toolTitle, $toolDescription])
+                    <a href="{{ route('site.tool.'.$slug) }}" class="group rounded-2xl bg-white p-6 ring-1 ring-slate-200 transition hover:shadow-md hover:ring-amber-300">
+                        <h3 class="font-semibold group-hover:text-amber-700">{{ $toolTitle }}</h3>
+                        <p class="mt-2 text-sm text-slate-600">{{ $toolDescription }}</p>
+                    </a>
                 @endforeach
             </div>
         </div>

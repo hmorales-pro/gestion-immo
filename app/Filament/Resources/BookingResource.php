@@ -114,6 +114,7 @@ class BookingResource extends Resource
                 BookingActions::reject()->iconButton()->tooltip('Refuser'),
                 Tables\Actions\ActionGroup::make([
                     Tables\Actions\ViewAction::make(),
+                    BookingActions::voucher(),
                     BookingActions::reschedule(),
                     BookingActions::requestInformation(),
                     BookingActions::cancel(),
@@ -135,6 +136,15 @@ class BookingResource extends Resource
                     Infolists\Components\TextEntry::make('decided_at')->label('Traitée le')->dateTime('d/m/Y H:i')->placeholder('—'),
                     Infolists\Components\TextEntry::make('cancellation_reason')->label('Motif d\'annulation')->visible(fn (Booking $record) => filled($record->cancellation_reason))->columnSpanFull(),
                     Infolists\Components\TextEntry::make('information_requested_at')->label('Informations demandées le')->dateTime('d/m/Y H:i')->visible(fn (Booking $record) => filled($record->information_requested_at))->color('warning'),
+                ]),
+            Infolists\Components\Section::make('Après la visite')
+                ->columns(3)
+                ->visible(fn (Booking $record): bool => $record->hasFeedback() || $record->hasSignedVoucher())
+                ->schema([
+                    Infolists\Components\TextEntry::make('feedback_interest')->label('Intérêt')->badge()->placeholder('Pas encore d\'avis'),
+                    Infolists\Components\TextEntry::make('feedback_price')->label('Avis sur le prix')->placeholder('—'),
+                    Infolists\Components\TextEntry::make('voucher_signed_at')->label('Bon de visite signé le')->dateTime('d/m/Y H:i')->placeholder('Non signé'),
+                    Infolists\Components\TextEntry::make('feedback_comment')->label('Commentaire du visiteur')->placeholder('—')->columnSpanFull(),
                 ]),
             Infolists\Components\Section::make('Visiteur')
                 ->columns(2)

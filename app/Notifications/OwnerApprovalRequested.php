@@ -33,7 +33,8 @@ class OwnerApprovalRequested extends BookingNotification
             ->line('Créneau demandé : '.$this->slotLabel())
             ->line('Situation professionnelle : '.$this->booking->employment_status->getLabel())
             ->action('Accepter ou refuser la visite', $this->booking->approvalUrl())
-            ->line('Ce lien est personnel : ne le transférez pas.');
+            ->line('Ce lien est personnel : ne le transférez pas.')
+            ->line('Toutes les visites de votre bien : ['.'page de suivi]('.$property->ownerReportUrl().')');
     }
 
     public function toSms(object $notifiable): string

@@ -64,7 +64,12 @@ class SiteController extends Controller
         $urls = collect([
             ['loc' => route('home'), 'lastmod' => null],
             ['loc' => route('site.guides'), 'lastmod' => Guides::all()->max('updated')],
+            ['loc' => route('site.tools'), 'lastmod' => null],
         ]);
+
+        foreach (array_keys(ToolsController::TOOLS) as $slug) {
+            $urls->push(['loc' => route('site.tool.'.$slug), 'lastmod' => null]);
+        }
 
         if (Demo::enabled()) {
             $urls->push(['loc' => route('site.demo'), 'lastmod' => null]);
@@ -92,6 +97,10 @@ class SiteController extends Controller
                 'Disallow: /rdv/',
                 'Disallow: /v/',
                 'Disallow: /calendar/',
+                'Disallow: /suivi/',
+                'Disallow: /affiche/',
+                'Disallow: /bon-de-visite/',
+                'Disallow: /outils/generateur-qr-code/qr-code.svg',
                 'Disallow: /livewire/',
                 '',
                 'Sitemap: '.route('site.sitemap'),

@@ -12,6 +12,7 @@
     $nav = [
         ['Fonctionnalités', route('home').'#fonctionnalites'],
         ['Comment ça marche', route('home').'#fonctionnement'],
+        ['Outils gratuits', route('site.tools')],
         ['Guides', route('site.guides')],
         ['FAQ', route('home').'#faq'],
     ];
@@ -56,7 +57,7 @@
                 <span class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-amber-500 text-sm font-bold text-white">IB</span>
                 <span class="font-semibold tracking-tight">ImmoBooking</span>
             </a>
-            <nav class="hidden items-center gap-6 text-sm font-medium text-slate-600 md:flex" aria-label="Navigation principale">
+            <nav class="hidden items-center gap-6 whitespace-nowrap text-sm font-medium text-slate-600 lg:flex" aria-label="Navigation principale">
                 @foreach ($nav as [$label, $href])
                     <a href="{{ $href }}" class="hover:text-slate-900">{{ $label }}</a>
                 @endforeach
@@ -64,7 +65,7 @@
             <div class="flex items-center gap-2">
                 <a href="{{ config('immobooking.github_url') }}" class="hidden rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 sm:inline-flex" rel="noopener">GitHub</a>
                 @if (\App\Support\Demo::enabled())
-                    <a href="{{ route('site.demo') }}" class="rounded-lg bg-slate-900 px-3.5 py-2 text-sm font-semibold text-white hover:bg-slate-800">Essayer la démo</a>
+                    <a href="{{ route('site.demo') }}" class="whitespace-nowrap rounded-lg bg-slate-900 px-3.5 py-2 text-sm font-semibold text-white hover:bg-slate-800">Essayer la démo</a>
                 @endif
             </div>
         </div>
@@ -90,6 +91,7 @@
                     @if (\App\Support\Demo::enabled())<li><a href="{{ route('site.demo') }}" class="hover:text-slate-900">Démo en ligne</a></li>@endif
                     <li><a href="{{ config('immobooking.github_url') }}" class="hover:text-slate-900" rel="noopener">Code source (GitHub)</a></li>
                     <li><a href="{{ route('site.guides') }}" class="hover:text-slate-900">Guides</a></li>
+                    <li><a href="{{ route('site.tools') }}" class="hover:text-slate-900">Outils gratuits</a></li>
                 </ul>
             </div>
             <div>

@@ -47,7 +47,7 @@
             </a>
         </section>
     @else
-        <form wire:submit="submit" class="space-y-6" novalidate>
+        <div class="space-y-6">
             {{-- Slots --}}
             <section class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
                 <h2 class="text-lg font-semibold">1. Choisissez un créneau</h2>
@@ -80,12 +80,45 @@
                     </div>
                 @empty
                     <p class="mt-4 rounded-lg bg-slate-50 px-3 py-4 text-center text-sm text-slate-600">
-                        Aucun créneau disponible pour le moment. Revenez bientôt ou contactez l'agence.
+                        Tous les créneaux sont pris pour le moment.
                     </p>
                 @endforelse
             </section>
 
-            @if ($this->slotsByDay->isNotEmpty())
+        @if ($this->slotsByDay->isEmpty())
+            {{-- Waiting list --}}
+            <section class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+                @if ($waiting)
+                    <p class="font-semibold">C'est noté !</p>
+                    <p class="mt-1 text-sm text-slate-600">Vous recevrez un e-mail dès qu'un créneau se libère. Votre adresse est supprimée juste après.</p>
+                @else
+                    <h2 class="text-lg font-semibold">Être prévenu dès qu'un créneau se libère</h2>
+                    <form wire:submit="joinWaitlist" class="mt-4 space-y-4" novalidate>
+                        <div>
+                            <label for="waitName" class="block text-sm font-medium text-slate-700">Nom et prénom</label>
+                            <input id="waitName" type="text" wire:model="waitName" autocomplete="name" @class([
+                                'mt-1 block w-full rounded-lg text-base shadow-sm',
+                                'border-slate-300 focus:border-amber-500 focus:ring-amber-500' => ! $errors->has('waitName'),
+                                'border-red-500 bg-red-50/40 focus:border-red-500 focus:ring-red-500' => $errors->has('waitName'),
+                            ])>
+                            @error('waitName') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+                        </div>
+                        <div>
+                            <label for="waitEmail" class="block text-sm font-medium text-slate-700">E-mail</label>
+                            <input id="waitEmail" type="email" wire:model="waitEmail" autocomplete="email" @class([
+                                'mt-1 block w-full rounded-lg text-base shadow-sm',
+                                'border-slate-300 focus:border-amber-500 focus:ring-amber-500' => ! $errors->has('waitEmail'),
+                                'border-red-500 bg-red-50/40 focus:border-red-500 focus:ring-red-500' => $errors->has('waitEmail'),
+                            ])>
+                            @error('waitEmail') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+                        </div>
+                        <button type="submit" class="w-full rounded-xl bg-slate-900 px-4 py-3 font-semibold text-white hover:bg-slate-800">Me prévenir</button>
+                    </form>
+                @endif
+            </section>
+        @else
+        <form wire:submit="submit" class="space-y-6" novalidate>
+
                 {{-- Prospect --}}
                 <section class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
                     <h2 class="text-lg font-semibold">2. Vos coordonnées</h2>
@@ -155,7 +188,8 @@
                         Vos coordonnées sont transmises uniquement à l'agence et au propriétaire du bien.
                     </p>
                 </section>
-            @endif
         </form>
+        @endif
+        </div>
     @endif
 </div>

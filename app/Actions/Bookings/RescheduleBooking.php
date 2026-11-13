@@ -10,7 +10,6 @@ use App\Models\PropertySlot;
 use App\Notifications\BookingRescheduled;
 use App\Notifications\OwnerApprovalRequested;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Notification;
 
 /**
  * Moves an active visit to another free slot of the same property.
@@ -21,7 +20,10 @@ use Illuminate\Support\Facades\Notification;
  */
 class RescheduleBooking
 {
-    public function __construct(private readonly EnsureProspectIsFree $ensureProspectIsFree) {}
+    public function __construct(
+        private readonly EnsureProspectIsFree $ensureProspectIsFree,
+        private readonly NotifyWaitlist $notifyWaitlist,
+    ) {}
 
     /**
      * @throws BookingException
@@ -29,6 +31,7 @@ class RescheduleBooking
     public function execute(Booking $booking, int $newSlotId, bool $byProspect = false): Booking
     {
         $previousLabel = $booking->slot->label();
+        $wasConfirmed = $booking->isConfirmed();
 
         DB::transaction(function () use ($booking, $newSlotId, $byProspect): void {
             $locked = Booking::query()->whereKey($booking->getKey())->lockForUpdate()->firstOrFail();
@@ -71,13 +74,20 @@ class RescheduleBooking
         $booking->notify($notification);
         $property->agent->notify($notification);
 
-        $owner = Notification::route('mail', $property->owner_email)->route('sms', $property->owner_phone);
+        $owner = $property->ownerRoute();
 
         if ($booking->isPending() && $property->booking_mode === BookingMode::OwnerApproval) {
             $owner->notify(new OwnerApprovalRequested($booking, rescheduled: true));
         } else {
             $owner->notify($notification);
         }
+
+        if ($wasConfirmed || $booking->isConfirmed()) {
+            $property->occupantRoute()?->notify($notification);
+        }
+
+        // The previous slot is free again.
+        $this->notifyWaitlist->execute($property);
 
         return $booking;
     }

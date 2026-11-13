@@ -13,6 +13,8 @@ class RejectBooking
     /**
      * @throws BookingException
      */
+    public function __construct(private readonly NotifyWaitlist $notifyWaitlist) {}
+
     public function execute(Booking $booking): Booking
     {
         DB::transaction(function () use ($booking): void {
@@ -31,6 +33,8 @@ class RejectBooking
 
         $booking->property->agent->notify($notification);
         $booking->notify($notification);
+
+        $this->notifyWaitlist->execute($booking->property);
 
         return $booking;
     }

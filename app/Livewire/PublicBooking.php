@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Actions\Bookings\CreateBooking;
+use App\Actions\Bookings\JoinWaitlist;
 use App\Enums\BookingStatus;
 use App\Enums\EmploymentStatus;
 use App\Exceptions\BookingException;
@@ -29,6 +30,13 @@ class PublicBooking extends Component
 
     #[Locked]
     public ?int $bookingId = null;
+
+    public string $waitName = '';
+
+    public string $waitEmail = '';
+
+    #[Locked]
+    public bool $waiting = false;
 
     public function mount(Property $property): void
     {
@@ -95,6 +103,25 @@ class PublicBooking extends Component
 
         $this->bookingId = $booking->id;
         $this->form->reset();
+    }
+
+    public function joinWaitlist(JoinWaitlist $join): void
+    {
+        $key = 'public-waitlist:'.request()->ip();
+
+        if (RateLimiter::tooManyAttempts($key, 5)) {
+            throw ValidationException::withMessages(['waitEmail' => 'Trop de demandes. Réessayez plus tard.']);
+        }
+
+        $data = $this->validate([
+            'waitName' => ['required', 'string', 'min:2', 'max:120'],
+            'waitEmail' => ['required', 'string', 'max:190', 'email:rfc,strict,filter'],
+        ], ['waitEmail.email' => 'Cette adresse e-mail ne semble pas valide.'], ['waitName' => 'nom', 'waitEmail' => 'e-mail']);
+
+        RateLimiter::hit($key, 600);
+        $join->execute($this->property, $data['waitName'], $data['waitEmail']);
+
+        $this->waiting = true;
     }
 
     public function render()

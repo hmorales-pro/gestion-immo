@@ -28,7 +28,9 @@ class CalendarController extends Controller
 
         $booking = Booking::query()->with(['property.agent', 'slot'])->where('manage_token', $manageToken)->firstOrFail();
 
-        return $this->ics($this->calendar->invitation($booking)->render(), 'visite.ics');
+        $ics = $this->calendar->invitation($booking, ['name' => $booking->prospect_name, 'email' => $booking->prospect_email]);
+
+        return $this->ics($ics->render(), 'visite.ics');
     }
 
     private function ics(string $content, string $filename, bool $inline = false): Response

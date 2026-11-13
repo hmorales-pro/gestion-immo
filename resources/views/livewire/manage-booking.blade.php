@@ -46,6 +46,51 @@
         @endif
     </section>
 
+    @if ($askFeedback)
+        <form wire:submit="saveFeedback" class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-amber-300">
+            <h2 class="text-lg font-semibold">Comment s'est passée la visite ?</h2>
+            <p class="mt-1 text-sm text-slate-600">Votre avis aide l'agence et le propriétaire. 30 secondes, promis.</p>
+
+            <fieldset class="mt-5">
+                <legend class="text-sm font-medium text-slate-700">Le bien vous intéresse-t-il ?</legend>
+                <div class="mt-2 grid grid-cols-3 gap-2">
+                    @foreach (\App\Enums\FeedbackInterest::cases() as $option)
+                        <label @class([
+                            'cursor-pointer rounded-lg px-2 py-3 text-center text-sm font-semibold ring-1 transition',
+                            'bg-slate-900 text-white ring-slate-900' => $feedbackInterest === $option->value,
+                            'bg-white text-slate-800 ring-slate-200 hover:bg-amber-50' => $feedbackInterest !== $option->value,
+                        ])>
+                            <input type="radio" wire:model.live="feedbackInterest" value="{{ $option->value }}" class="sr-only">
+                            {{ $option->getLabel() }}
+                        </label>
+                    @endforeach
+                </div>
+                @error('feedbackInterest') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+            </fieldset>
+
+            <fieldset class="mt-5">
+                <legend class="text-sm font-medium text-slate-700">Et le prix ? <span class="font-normal text-slate-500">(facultatif)</span></legend>
+                <div class="mt-2 grid grid-cols-3 gap-2">
+                    @foreach (\App\Enums\FeedbackPrice::cases() as $option)
+                        <label @class([
+                            'cursor-pointer rounded-lg px-2 py-3 text-center text-sm font-semibold ring-1 transition',
+                            'bg-slate-900 text-white ring-slate-900' => $feedbackPrice === $option->value,
+                            'bg-white text-slate-800 ring-slate-200 hover:bg-amber-50' => $feedbackPrice !== $option->value,
+                        ])>
+                            <input type="radio" wire:model.live="feedbackPrice" value="{{ $option->value }}" class="sr-only">
+                            {{ $option->getLabel() }}
+                        </label>
+                    @endforeach
+                </div>
+            </fieldset>
+
+            <label for="feedbackComment" class="mt-5 block text-sm font-medium text-slate-700">Un commentaire ? <span class="font-normal text-slate-500">(facultatif)</span></label>
+            <textarea id="feedbackComment" rows="3" wire:model="feedbackComment" maxlength="1000" placeholder="Points forts, points faibles, questions…" class="{{ $input($errors->has('feedbackComment')) }}"></textarea>
+
+            <button type="submit" class="mt-5 w-full rounded-xl bg-amber-500 px-4 py-3 font-semibold text-slate-950 hover:bg-amber-400">Envoyer mon avis</button>
+        </form>
+    @endif
+
     @if ($canChange)
         @if ($this->booking->information_requested_at && $panel !== 'info')
             <button type="button" wire:click="open('info')" class="w-full rounded-xl bg-amber-50 px-4 py-3 text-left text-sm font-medium text-amber-900 ring-1 ring-amber-200">

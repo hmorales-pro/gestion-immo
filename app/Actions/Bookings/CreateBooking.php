@@ -12,7 +12,6 @@ use App\Notifications\BookingReceived;
 use App\Notifications\OwnerApprovalRequested;
 use App\Notifications\VisitRequested;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Notification;
 use Propaganistas\LaravelPhone\PhoneNumber;
 
 class CreateBooking
@@ -54,9 +53,7 @@ class CreateBooking
         $property->agent->notify(new VisitRequested($booking));
 
         match ($property->booking_mode) {
-            BookingMode::OwnerApproval => Notification::route('mail', $property->owner_email)
-                ->route('sms', $property->owner_phone)
-                ->notify(new OwnerApprovalRequested($booking)),
+            BookingMode::OwnerApproval => $property->ownerRoute()->notify(new OwnerApprovalRequested($booking)),
             BookingMode::Instant => $this->approve->execute($booking, notifyOwner: true),
             BookingMode::AgentApproval => null,
         };

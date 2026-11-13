@@ -3,9 +3,12 @@
 namespace App\Livewire;
 
 use App\Actions\Bookings\CancelBooking;
+use App\Actions\Bookings\RecordFeedback;
 use App\Actions\Bookings\RescheduleBooking;
 use App\Actions\Bookings\UpdateProspectInformation;
 use App\Enums\EmploymentStatus;
+use App\Enums\FeedbackInterest;
+use App\Enums\FeedbackPrice;
 use App\Exceptions\BookingException;
 use App\Models\Booking;
 use App\Models\PropertySlot;
@@ -43,6 +46,12 @@ class ManageBooking extends Component
     public string $message = '';
 
     public ?string $flash = null;
+
+    public string $feedbackInterest = '';
+
+    public string $feedbackPrice = '';
+
+    public string $feedbackComment = '';
 
     public function mount(string $token): void
     {
@@ -141,6 +150,28 @@ class ManageBooking extends Component
         $this->done("Merci, vos informations ont été transmises à l'agence.");
     }
 
+    public function saveFeedback(RecordFeedback $record): void
+    {
+        $data = $this->validate([
+            'feedbackInterest' => ['required', Rule::enum(FeedbackInterest::class)],
+            'feedbackPrice' => ['nullable', Rule::enum(FeedbackPrice::class)],
+            'feedbackComment' => ['nullable', 'string', 'max:1000'],
+        ], ['feedbackInterest.required' => 'Dites-nous si le bien vous intéresse.']);
+
+        try {
+            $record->execute(
+                $this->booking,
+                FeedbackInterest::from($data['feedbackInterest']),
+                FeedbackPrice::tryFrom((string) $data['feedbackPrice']),
+                $data['feedbackComment'],
+            );
+        } catch (BookingException $e) {
+            throw ValidationException::withMessages(['feedbackInterest' => $e->getMessage()]);
+        }
+
+        $this->done('Merci pour votre avis, il a été transmis à l\'agence.');
+    }
+
     private function done(string $message): void
     {
         unset($this->booking, $this->slotsByDay);
@@ -155,6 +186,7 @@ class ManageBooking extends Component
 
         return view('livewire.manage-booking', [
             'employmentStatuses' => EmploymentStatus::cases(),
+            'askFeedback' => $booking->hasHappened() && ! $booking->hasFeedback(),
             'canChange' => $booking->isActive() && $booking->slot->start_time->isFuture(),
             'googleUrl' => $booking->isConfirmed() ? $calendar->googleUrl($booking) : null,
             'outlookUrl' => $booking->isConfirmed() ? $calendar->outlookUrl($booking) : null,
