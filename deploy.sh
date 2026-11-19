@@ -76,6 +76,9 @@ main() {
     "$PHP" artisan event:cache
     "$PHP" artisan filament:optimize
 
+    step "Vérification des pages"
+    "$PHP" artisan immobooking:check || echo "⚠ Certaines pages sont en erreur : copiez le message ci-dessus pour le corriger."
+
     if (( was_installed )); then
         step "Remise en ligne"
         trap - ERR
