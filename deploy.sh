@@ -76,14 +76,15 @@ main() {
     "$PHP" artisan event:cache
     "$PHP" artisan filament:optimize
 
-    step "Vérification des pages"
-    "$PHP" artisan immobooking:check || echo "⚠ Certaines pages sont en erreur : copiez le message ci-dessus pour le corriger."
-
     if (( was_installed )); then
         step "Remise en ligne"
         trap - ERR
         "$PHP" artisan up
     fi
+
+    # After "up": in maintenance mode every page answers 503.
+    step "Vérification des pages"
+    "$PHP" artisan immobooking:check || echo "⚠ Certaines pages sont en erreur : copiez le message ci-dessus pour le corriger."
 
     step "Terminé"
     if (( install )); then
