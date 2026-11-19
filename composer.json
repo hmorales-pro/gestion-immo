@@ -16,7 +16,8 @@
         "laravel/tinker": "^2.10",
         "propaganistas/laravel-phone": "^6.1",
         "symfony/brevo-mailer": "^7.4",
-        "symfony/http-client": "^7.4"
+        "symfony/http-client": "^7.4",
+        "symfony/yaml": "^7.4"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
