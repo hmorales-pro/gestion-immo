@@ -132,25 +132,30 @@ ImmoBooking tourne sur un hébergement web classique (Hostinger, o2switch, OVH�
 SQLite, **sans worker, sans cron obligatoire, sans Node.js sur le serveur**. Les fichiers CSS/JS compilés
 sont versionnés dans `public/build`.
 
-**Première installation** (en SSH, dans le dossier du site) :
+**Première installation** (en SSH). Le dépôt doit être public, ou accessible par une clé de déploiement.
+Sur Hostinger, clonez l'application **directement dans `public_html`** : le `.htaccess` à la racine du
+projet redirige tout vers `public/`, et `.env`, `vendor/`, `storage/` restent inaccessibles. Un lien
+symbolique `public_html -> …/public` n'est pas suivi de façon fiable par le serveur web de Hostinger.
 
 ```bash
-git clone https://github.com/hmorales-pro/gestion-immo.git booking && cd booking
+cd ~/domains/votre-domaine.fr
+mv public_html public_html.old               # le dossier doit être vide pour le clone
+git clone https://github.com/hmorales-pro/gestion-immo.git public_html && cd public_html
 ./deploy.sh --install     # crée .env à partir de .env.mutualise.example puis s'arrête
-nano .env                 # APP_URL, base MySQL, clé Brevo, IMMOBOOKING_*…
-./deploy.sh --install     # dépendances, clé, base, démo, caches
+nano .env                 # APP_URL, base MySQL (hôte 127.0.0.1), IMMOBOOKING_*, mentions légales
+./deploy.sh --install     # dépendances, clé, base, démo, caches, vérification des pages
 php artisan make:filament-user
 ```
 
-Faites pointer la racine du (sous-)domaine vers le dossier `public/`. Si l'hébergeur ne le permet pas, le
-`.htaccess` à la racine du projet redirige tout vers `public/`, et `.env`, `vendor/`, `storage/` restent
-inaccessibles.
+Chez un hébergeur qui permet de choisir la racine du site, faites-la pointer vers le dossier `public/`.
+Vérifiez ensuite que `https://votre-domaine.fr/.env` répond 403 ou 404.
 
 **Mise à jour** : `./deploy.sh`. Le script fait un `git pull`, met le site en maintenance quelques
 secondes, installe les dépendances, lance les migrations, reconstruit les caches puis remet le site en
-ligne, même si une étape échoue. Options utiles :
+ligne, même si une étape échoue. Il vérifie enfin que chaque page répond (`php artisan immobooking:check`,
+utilisable seul) et restaure les fichiers CSS/JS compilés s'ils ont disparu. Options utiles :
 
-- `PHP_BIN=/usr/bin/php8.3 ./deploy.sh` si la commande `php` n'est pas en version 8.2 ou plus ;
+- `PHP_BIN=/usr/bin/php8.5 ./deploy.sh` si la commande `php` en SSH n'est pas la bonne version ;
 - `COMPOSER_BIN="php composer.phar" ./deploy.sh` si Composer n'est pas installé ;
 - `SKIP_GIT=1 ./deploy.sh` si les fichiers sont envoyés par FTP.
 

@@ -49,6 +49,12 @@ main() {
         trap 'echo; echo "Échec : remise en ligne du site."; "$PHP" artisan up || true' ERR
     fi
 
+    # Compiled CSS/JS are versioned (no Node.js on the server): restore them if missing.
+    if [[ ! -f public/build/manifest.json && -d .git ]]; then
+        step "Restauration des fichiers CSS/JS compilés"
+        git checkout -- public/build
+    fi
+
     step "Dépendances PHP"
     $COMPOSER install --no-dev --optimize-autoloader --no-interaction --no-progress
 
