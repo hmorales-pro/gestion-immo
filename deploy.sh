@@ -65,6 +65,10 @@ main() {
 
     step "Droits d'écriture"
     chmod -R ug+rwX storage bootstrap/cache
+    # Shared hosts (Hostinger…) answer 403 when the web root is group-writable.
+    chmod 755 . public
+    chmod 644 public/index.php
+    for f in .htaccess public/.htaccess; do [[ -f "$f" ]] && chmod 644 "$f"; done
 
     step "Base de données"
     "$PHP" artisan migrate --force
